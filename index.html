@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Nuxchoco Hampers — Premium Gifting</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+const SUPABASE_URL = "https://pieqxnddhlodjtfmgubf.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpZXF4bmRkaGxvZGpmdm1ndWJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MzI4NTgsImV4cCI6MjA5ODMwODg1OH0.htxGyDiMRc5ZofRicao0VLn6S5S8HJiD4OKw7fKrSP8";
+const RZP_KEY = "rzp_test_T7U1tanOtJMpOz";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const G="#C9933A",DK="#100C04",W="#fff",GRAY="#F5F5F7",GRAY2="#86868B";
+
+const CATS=[
+  {id:"wedding",label:"Wedding",icon:"💒",color:"#8B6914",bg:"#FFF8EE",
+   desc:"Elegant hampers for your most special day",
+   items:[
+     {id:11,name:"Wedding Return Gift",price:599,op:799,desc:"Elegant dryfruit box for guests",emoji:"💒"},
+     {id:12,name:"Bridal Welcome Hamper",price:1999,op:2499,desc:"Luxury welcome hamper",emoji:"👰"},
+     {id:13,name:"Wedding Bulk Pack",price:499,op:699,desc:"Per piece — min 50 units",emoji:"📦"},
+   ]},
+  {id:"rakhi",label:"Rakhi",icon:"🧡",color:"#C2185B",bg:"#FFF0F5",
+   desc:"India's first premium Raksha Bandhan hamper",
+   items:[
+     {id:21,name:"Rakhi Classic",price:699,op:899,desc:"Dryfruits + chocolates + card",emoji:"🧡"},
+     {id:22,name:"Rakhi Premium",price:1299,op:1699,desc:"Imported chocolates + gold box",emoji:"🎀"},
+     {id:23,name:"Rakhi Corporate",price:599,op:799,desc:"Bulk 50+ units",emoji:"🏢"},
+   ]},
+  {id:"diwali",label:"Diwali",icon:"🪔",color:"#C9933A",bg:"#FDF6EC",
+   desc:"Gold-ribbon luxury hampers for Diwali",
+   items:[
+     {id:31,name:"Diwali Standard",price:799,op:999,desc:"Premium dryfruits + chocolates",emoji:"🪔"},
+     {id:32,name:"Diwali Premium",price:1799,op:2299,desc:"Luxury gold box",emoji:"✨"},
+     {id:33,name:"Diwali Corporate",price:699,op:899,desc:"Branded 50+ units",emoji:"🏢"},
+   ]},
+  {id:"corporate",label:"Corporate",icon:"🏢",color:"#1565C0",bg:"#F0F4FF",
+   desc:"Custom-branded hampers for your team",
+   items:[
+     {id:41,name:"Corporate Standard",price:699,op:899,desc:"Logo sticker hamper",emoji:"🏢"},
+     {id:42,name:"Corporate Premium",price:1499,op:1999,desc:"Luxury logo box",emoji:"👔"},
+     {id:43,name:"Corporate Luxury",price:2999,op:3999,desc:"VIP client hamper",emoji:"👑"},
+   ]},
+];
+
+const ALL=CATS.flatMap(c=>c.items.map(h=>({...h,cat:c.label,catId:c.id,catColor:c.color,catBg:c.bg})));
+const SC={"New":G,"Confirmed":"#2196F3","Packed":"#9C27B0","Delivered":"#4CAF50","Cancelled":"#F44336"};
+
+function App(){
+  const [pg,setPg]=React.useState("home");
+  const [bn,setBn]=React.useState(0);
+  const [catF,setCatF]=React.useState("All");
+  const [cart,setCart]=React.useState([]);
+  const [showCart,setShowCart]=React.useState(false);
+  const [orders,setOrders]=React.useState([]);
+  const [adminIn,setAdminIn]=React.useState(false);
+  const [pass,setPass]=React.useState("");
+  const [passErr,setPassErr]=React.useState(false);
+  const [form,setForm]=React.useState({name:"",phone:"",email:"",addr:"",city:"",pin:"",note:""});
+  const [paying,setPaying]=React.useState(false);
+  const [done,setDone]=React.useState(false);
+  const [fCat,setFCat]=React.useState("All");
+  const [loading,setLoading]=React.useState(false);
+  const tr=React.useRef();
+
+  React.useEffect(()=>{
+    tr.current=setInterval(()=>setBn(p=>(p+1)%4),5000);
+    return()=>clearInterval(tr.current);
+  },[]);
+
+  const loadOrders=async()=>{
+    setLoading(true);
+    const{data}=await sb.from("orders").select("*").order("created_at",{ascending:false});
+    if(data) setOrders(data);
+    setLoading(false);
+  };
+
+  React.useEffect(()=>{if(adminIn)loadOrders();},[adminIn]);
+
+  const cartTotal=cart.reduce((s,c)=>s+c.price*c.qty,0);
+  const cartCount=cart.reduce((s,c)=>s+c.qty,0);
+
+  const addToCart=(h)=>{
+    const ex=cart.find(c=>c.id===h.id);
+    if(ex) setCart(cart.map(c=>c.id===h.id?{...c,qty:c.qty+1}:c));
+    else setCart([...cart,{...h,qty:1}]);
+    setShowCart(true);
+  };
+
+  const removeFromCart=(id)=>setCart(cart.filter(c=>c.id!==id));
+  const updateQty=(id,qty)=>{
+    if(qty<1){removeFromCart(id);return;}
+    setCart(cart.map(c=>c.id===id?{...c,qty}:c));
+  };
+
+  const go=id=>document.getElementById(id)?.scrollIntoView({behavior:"smooth"});
+  const I={width:"100%",padding:"12px 14px",borderRadius:10,border:"1px solid #E0E0E0",
+    fontFamily:"sans-serif",fontSize:14,background:W,outline:"none",boxSizing:"border-box"};
+
+  const doRazorpay=()=>{
+    if(!form.name||!form.phone||!form.addr){alert("Name, phone aur address zaroori hai!");return;}
+    setPaying(true);
+    const options={
+      key:RZP_KEY,
+      amount:cartTotal*100,
+      currency:"INR",
+      name:"Nuxchoco Hampers",
+      description:"Premium Gift Hamper",
+      handler:async(response)=>{
+        // Save to Supabase
+        for(const item of cart){
+          await sb.from("orders").insert({
+            name:form.name,phone:form.phone,
+            address:`${form.addr}, ${form.city} ${form.pin}`,
+            city:form.city,hamper_name:item.name,
+            category:item.cat,quantity:item.qty,
+            total:item.price*item.qty,status:"New",note:form.note
+          });
+        }
+        setCart([]);
+        setShowCart(false);
+        setDone(true);
+        setPaying(false);
+        setPg("thankyou");
+      },
+      prefill:{name:form.name,contact:form.phone,email:form.email},
+      theme:{color:G},
+      modal:{ondismiss:()=>setPaying(false)}
+    };
+    const rzp=new window.Razorpay(options);
+    rzp.open();
+  };
+
+  const updateStatus=async(id,status)=>{
+    await sb.from("orders").update({status}).eq("id",id);
+    setOrders(orders.map(o=>o.id===id?{...o,status}:o));
+  };
+
+  const deleteOrder=async(id)=>{
+    await sb.from("orders").delete().eq("id",id);
+    setOrders(orders.filter(o=>o.id!==id));
+  };
+
+  const BANNERS=[
+    {tag:"New 2026",sub:"India's First Premium
+Raksha Bandhan Hamper",emoji:"🧡",bg:"linear-gradient(135deg,#2D0A1A,#5C1A3A)",ac:"#E8A0B8"},
+    {tag:"Bestseller",sub:"Gold-Ribbon Luxury
+Gifting Boxes",emoji:"🪔",bg:"linear-gradient(135deg,#1A1000,#3D2800)",ac:G},
+    {tag:"Corporate",sub:"Custom-Branded Hampers
+for Your Entire Team",emoji:"🏢",bg:"linear-gradient(135deg,#001A2D,#003355)",ac:"#4A9EE8"},
+    {tag:"Elegant",sub:"Return Gifts Your
+Guests Will Remember",emoji:"💒",bg:"linear-gradient(135deg,#1A0D00,#3D2000)",ac:"#D4A76A"},
+  ];
+  const B=BANNERS[bn];
+  const fOrders=fCat==="All"?orders:orders.filter(o=>o.category===fCat);
+  const rev=orders.filter(o=>o.status!=="Cancelled").reduce((s,o)=>s+o.total,0);
+
+  // THANK YOU
+  if(pg==="thankyou") return(
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:GRAY}}>
+      <div style={{background:W,borderRadius:20,padding:"50px 40px",textAlign:"center",maxWidth:420,boxShadow:"0 8px 40px rgba(0,0,0,0.08)"}}>
+        <div style={{fontSize:64,marginBottom:16}}>🎉</div>
+        <h2 style={{fontSize:26,color:DK,fontWeight:700,marginBottom:10}}>Order Placed!</h2>
+        <p style={{fontSize:15,color:GRAY2,lineHeight:1.7,marginBottom:28}}>
+          Aapka order successfully place ho gaya!<br/>Hum jald hi WhatsApp karenge. 😊
+        </p>
+        <button onClick={()=>{setPg("home");setDone(false);}}
+          style={{background:G,color:W,border:"none",padding:"14px 32px",fontSize:13,
+            fontWeight:600,cursor:"pointer",borderRadius:980}}>← Back to Home</button>
+      </div>
+    </div>
+  );
+
+  // ADMIN
+  if(pg==="admin") return(
+    <div style={{minHeight:"100vh",background:GRAY,fontFamily:"-apple-system,sans-serif"}}>
+      <nav style={{background:"rgba(255,255,255,0.95)",backdropFilter:"blur(20px)",
+        borderBottom:"1px solid rgba(0,0,0,0.08)",padding:"0 4%",position:"sticky",top:0,zIndex:99}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",height:50,maxWidth:1100,margin:"0 auto"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <div style={{width:28,height:28,borderRadius:6,background:`linear-gradient(135deg,${DK},${G})`,
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🍫</div>
+            <div>
+              <div style={{fontSize:13,color:DK,fontWeight:700}}>Nuxchoco Admin</div>
+              <div style={{fontSize:8,color:GRAY2,letterSpacing:1.5}}>ORDER DASHBOARD</div>
+            </div>
+          </div>
+          <div style={{display:"flex",gap:8}}>
+            {adminIn&&<button onClick={loadOrders}
+              style={{background:"#E8F5E9",color:"#2E7D32",border:"none",padding:"7px 14px",fontSize:11,fontWeight:700,cursor:"pointer",borderRadius:8}}>🔄 Refresh</button>}
+            <button onClick={()=>{setAdminIn(false);setPg("home");}}
+              style={{background:"none",color:GRAY2,border:`1px solid #E0E0E0`,padding:"7px 14px",fontSize:11,cursor:"pointer",borderRadius:8}}>Logout</button>
+          </div>
+        </div>
+      </nav>
+
+      {!adminIn?(
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"80vh",padding:20}}>
+          <div style={{background:W,borderRadius:20,padding:"36px 32px",width:"100%",maxWidth:320,boxShadow:"0 8px 40px rgba(0,0,0,0.08)"}}>
+            <div style={{width:56,height:56,borderRadius:14,background:`linear-gradient(135deg,${DK},${G})`,
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,margin:"0 auto 16px"}}>🍫</div>
+            <h2 style={{fontSize:20,color:DK,textAlign:"center",fontWeight:700,marginBottom:4}}>Admin Login</h2>
+            <p style={{fontSize:11,color:GRAY2,textAlign:"center",marginBottom:18}}>Nuxchoco Dashboard</p>
+            <input type="password" placeholder="Password..." value={pass}
+              onChange={e=>setPass(e.target.value)}
+              onKeyDown={e=>{if(e.key==="Enter"){if(pass==="nuxchoco2026"){setAdminIn(true);setPassErr(false);}else setPassErr(true);}}}
+              style={{...I,marginBottom:passErr?6:12,border:passErr?"1px solid #F44336":"1px solid #E0E0E0"}}/>
+            {passErr&&<div style={{fontSize:11,color:"#F44336",marginBottom:10}}>❌ Wrong password!</div>}
+            <button onClick={()=>{if(pass==="nuxchoco2026"){setAdminIn(true);setPassErr(false);}else setPassErr(true);}}
+              style={{width:"100%",background:G,color:W,border:"none",padding:"12px",fontSize:12,fontWeight:700,cursor:"pointer",borderRadius:12}}>Login →</button>
+            <div style={{fontSize:10,color:"#CCC",textAlign:"center",marginTop:12}}>Password: nuxchoco2026</div>
+          </div>
+        </div>
+      ):(
+        <div style={{maxWidth:1100,margin:"0 auto",padding:"20px 4%"}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10,marginBottom:16}}>
+            {[{l:"Total",v:orders.length,i:"📦",c:DK},{l:"New",v:orders.filter(o=>o.status==="New").length,i:"🆕",c:G},
+              {l:"Delivered",v:orders.filter(o=>o.status==="Delivered").length,i:"✅",c:"#4CAF50"},
+              {l:"Revenue",v:`₹${rev.toLocaleString()}`,i:"💰",c:"#9C27B0"},
+              {l:"Pending",v:orders.filter(o=>["Confirmed","Packed"].includes(o.status)).length,i:"⏳",c:"#2196F3"}
+            ].map((s,i)=>(
+              <div key={i} style={{background:W,borderRadius:12,padding:"14px 12px",boxShadow:"0 2px 10px rgba(0,0,0,0.05)",borderLeft:`3px solid ${s.c}`}}>
+                <div style={{fontSize:20,marginBottom:3}}>{s.i}</div>
+                <div style={{fontSize:20,color:s.c,fontWeight:700}}>{s.v}</div>
+                <div style={{fontSize:9,color:GRAY2,marginTop:2,textTransform:"uppercase",letterSpacing:1}}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
+            {["All","Wedding","Rakhi","Diwali","Corporate"].map(c=>(
+              <button key={c} onClick={()=>setFCat(c)}
+                style={{padding:"6px 14px",borderRadius:20,fontSize:11,fontWeight:600,cursor:"pointer",border:"none",
+                  background:fCat===c?G:W,color:fCat===c?W:"#5A3D1A",boxShadow:"0 1px 4px rgba(0,0,0,0.06)"}}>
+                {{"Wedding":"💒 ","Rakhi":"🧡 ","Diwali":"🪔 ","Corporate":"🏢 "}[c]||"📦 "}{c}
+              </button>
+            ))}
+          </div>
+
+          <div style={{background:W,borderRadius:12,boxShadow:"0 2px 10px rgba(0,0,0,0.05)",overflow:"hidden"}}>
+            <div style={{padding:"12px 16px",borderBottom:"1px solid #F5F5F5",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <h3 style={{fontSize:15,color:DK,margin:0,fontWeight:700}}>{fCat==="All"?"All Orders":`${fCat} Orders`}</h3>
+              <span style={{fontSize:10,color:GRAY2}}>{loading?"Loading...":fOrders.length+" orders"}</span>
+            </div>
+            {fOrders.length===0?(
+              <div style={{padding:"44px",textAlign:"center"}}>
+                <div style={{fontSize:40,marginBottom:8}}>📭</div>
+                <div style={{fontSize:13,color:GRAY2}}>{loading?"Loading orders...":"Koi order nahi"}</div>
+              </div>
+            ):fOrders.map((o,i)=>(
+              <div key={o.id} style={{padding:"12px 16px",borderBottom:i<fOrders.length-1?"1px solid #F8F8F8":"none",
+                display:"grid",gridTemplateColumns:"1.5fr 1fr 1fr auto",gap:10,alignItems:"center"}}>
+                <div>
+                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}>
+                    <span style={{fontSize:12,fontWeight:700,color:DK}}>{o.name}</span>
+                    <span style={{fontSize:8,padding:"2px 6px",borderRadius:8,background:GRAY,color:GRAY2,fontWeight:600}}>{o.category}</span>
+                  </div>
+                  <div style={{fontSize:10,color:GRAY2}}>📱 {o.phone}</div>
+                  <div style={{fontSize:10,color:GRAY2}}>📍 {o.address?.slice(0,30)}</div>
+                  {o.note&&<div style={{fontSize:10,color:G}}>💬 {o.note}</div>}
+                </div>
+                <div>
+                  <div style={{fontSize:11,fontWeight:600,color:"#5A3D1A"}}>{o.hamper_name}</div>
+                  <div style={{fontSize:10,color:GRAY2}}>Qty: {o.quantity}</div>
+                  <div style={{fontSize:15,color:G,fontWeight:700}}>₹{o.total?.toLocaleString()}</div>
+                  <div style={{fontSize:9,color:"#CCC"}}>{new Date(o.created_at).toLocaleDateString("en-IN")}</div>
+                </div>
+                <select value={o.status} onChange={e=>updateStatus(o.id,e.target.value)}
+                  style={{padding:"5px 7px",borderRadius:7,fontSize:10,border:`1px solid ${SC[o.status]}`,
+                    color:SC[o.status],fontWeight:700,background:W,cursor:"pointer",outline:"none"}}>
+                  {Object.keys(SC).map(s=><option key={s} value={s}>{s}</option>)}
+                </select>
+                <button onClick={()=>deleteOrder(o.id)}
+                  style={{background:"#FFF5F5",border:"1px solid #FFE0E0",color:"#F44336",padding:"5px 8px",borderRadius:7,cursor:"pointer",fontSize:11,fontWeight:700}}>🗑️</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // HOME
+  return(
+    <div style={{fontFamily:"-apple-system,sans-serif",background:W,color:DK,overflowX:"hidden"}}>
+
+      {/* CART SIDEBAR */}
+      {showCart&&(
+        <div style={{position:"fixed",inset:0,zIndex:1000,display:"flex"}}>
+          <div onClick={()=>setShowCart(false)} style={{flex:1,background:"rgba(0,0,0,0.4)"}}/>
+          <div style={{width:380,background:W,display:"flex",flexDirection:"column",boxShadow:"-8px 0 40px rgba(0,0,0,0.15)"}}>
+            <div style={{padding:"20px 20px 14px",borderBottom:"1px solid #F0F0F0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <h3 style={{fontSize:18,fontWeight:700,color:DK}}>🛒 Cart ({cartCount})</h3>
+              <button onClick={()=>setShowCart(false)} style={{background:"none",border:"none",fontSize:20,cursor:"pointer",color:GRAY2}}>✕</button>
+            </div>
+            <div style={{flex:1,overflowY:"auto",padding:"16px 20px"}}>
+              {cart.length===0?(
+                <div style={{textAlign:"center",padding:"40px 20px",color:GRAY2}}>
+                  <div style={{fontSize:40,marginBottom:8}}>🛒</div>
+                  <div>Cart khali hai!</div>
+                </div>
+              ):cart.map(c=>(
+                <div key={c.id} style={{display:"flex",gap:12,alignItems:"center",marginBottom:16,padding:"12px",background:GRAY,borderRadius:10}}>
+                  <span style={{fontSize:28}}>{c.emoji}</span>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:13,fontWeight:700,color:DK}}>{c.name}</div>
+                    <div style={{fontSize:12,color:G,fontWeight:700}}>₹{c.price.toLocaleString()}</div>
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    <button onClick={()=>updateQty(c.id,c.qty-1)}
+                      style={{width:26,height:26,border:`1px solid ${G}`,background:W,color:G,fontSize:14,cursor:"pointer",borderRadius:6,fontWeight:700}}>−</button>
+                    <span style={{fontSize:13,fontWeight:700,minWidth:16,textAlign:"center"}}>{c.qty}</span>
+                    <button onClick={()=>updateQty(c.id,c.qty+1)}
+                      style={{width:26,height:26,border:"none",background:G,color:W,fontSize:14,cursor:"pointer",borderRadius:6,fontWeight:700}}>+</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {cart.length>0&&(
+              <div style={{padding:"16px 20px",borderTop:"1px solid #F0F0F0"}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}>
+                  <span style={{fontSize:15,fontWeight:600}}>Total</span>
+                  <span style={{fontSize:20,fontWeight:700,color:G}}>₹{cartTotal.toLocaleString()}</span>
+                </div>
+                <div style={{marginBottom:10}}>
+                  {[["name","Name","Aapka naam"],["phone","Phone","WhatsApp number"],["addr","Address","Delivery address"]].map(([k,l,p])=>(
+                    <div key={k} style={{marginBottom:8}}>
+                      <label style={{fontSize:10,letterSpacing:1.5,textTransform:"uppercase",color:GRAY2,fontWeight:600,display:"block",marginBottom:4}}>{l} *</label>
+                      <input style={{...I,padding:"10px 12px",fontSize:13}} placeholder={p} value={form[k]}
+                        onChange={e=>setForm({...form,[k]:e.target.value})}/>
+                    </div>
+                  ))}
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                    <div>
+                      <label style={{fontSize:10,letterSpacing:1.5,textTransform:"uppercase",color:GRAY2,fontWeight:600,display:"block",marginBottom:4}}>City</label>
+                      <input style={{...I,padding:"10px 12px",fontSize:13}} placeholder="Mumbai" value={form.city}
+                        onChange={e=>setForm({...form,city:e.target.value})}/>
+                    </div>
+                    <div>
+                      <label style={{fontSize:10,letterSpacing:1.5,textTransform:"uppercase",color:GRAY2,fontWeight:600,display:"block",marginBottom:4}}>Note</label>
+                      <input style={{...I,padding:"10px 12px",fontSize:13}} placeholder="Special request" value={form.note}
+                        onChange={e=>setForm({...form,note:e.target.value})}/>
+                    </div>
+                  </div>
+                </div>
+                <button onClick={doRazorpay} disabled={paying}
+                  style={{width:"100%",background:paying?"#ccc":G,color:W,border:"none",
+                    padding:"14px",fontSize:13,fontWeight:700,cursor:paying?"not-allowed":"pointer",
+                    borderRadius:12,marginTop:4}}>
+                  {paying?"Processing...":"💳 Pay ₹"+cartTotal.toLocaleString()+" →"}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* NAV */}
+      <nav style={{position:"sticky",top:0,zIndex:999,background:"rgba(255,255,255,0.88)",
+        backdropFilter:"blur(20px)",borderBottom:"1px solid rgba(0,0,0,0.08)",padding:"0 5%"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",height:50,maxWidth:1200,margin:"0 auto"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}} onClick={()=>window.scrollTo({top:0,behavior:"smooth"})}>
+            <div style={{width:30,height:30,borderRadius:6,background:`linear-gradient(135deg,${DK},${G})`,
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>🍫</div>
+            <span style={{fontSize:15,color:DK,fontWeight:700}}>Nuxchoco</span>
+          </div>
+          <div style={{display:"flex",gap:18,alignItems:"center"}}>
+            {[["categories","Categories"],["hampers","Hampers"],["contact","Contact"]].map(([id,l])=>(
+              <button key={id} onClick={()=>go(id)}
+                style={{background:"none",border:"none",color:GRAY2,fontSize:13,fontWeight:500,cursor:"pointer"}}>{l}</button>
+            ))}
+            <button onClick={()=>setShowCart(true)}
+              style={{background:GRAY,color:DK,border:"none",padding:"8px 16px",fontSize:12,fontWeight:600,cursor:"pointer",borderRadius:980,position:"relative"}}>
+              🛒 Cart {cartCount>0&&<span style={{background:G,color:W,borderRadius:"50%",fontSize:9,padding:"2px 5px",marginLeft:4}}>{cartCount}</span>}
+            </button>
+            <button onClick={()=>setShowCart(true)}
+              style={{background:G,color:W,border:"none",padding:"8px 16px",fontSize:12,fontWeight:600,cursor:"pointer",borderRadius:980}}>
+              Order Now
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <section style={{background:B.bg,minHeight:"88vh",display:"flex",alignItems:"center",
+        padding:"70px 6%",position:"relative",overflow:"hidden",transition:"background 0.8s"}}>
+        <div style={{position:"absolute",top:"20%",right:"8%",width:400,height:400,
+          background:`radial-gradient(circle,${B.ac}20 0%,transparent 70%)`,borderRadius:"50%",pointerEvents:"none"}}/>
+        <div style={{maxWidth:1100,width:"100%",margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:70,alignItems:"center"}}>
+          <div>
+            <div style={{display:"inline-block",background:`${B.ac}25`,border:`1px solid ${B.ac}40`,borderRadius:20,padding:"4px 12px",marginBottom:18}}>
+              <span style={{fontSize:10,color:B.ac,fontWeight:700,letterSpacing:1}}>{B.tag}</span>
+            </div>
+            <h1 style={{fontSize:"clamp(32px,5vw,58px)",color:"white",lineHeight:1.1,fontWeight:700,marginBottom:12,letterSpacing:-1,whiteSpace:"pre-line"}}>{B.sub}</h1>
+            <p style={{fontSize:15,color:"rgba(255,255,255,0.5)",lineHeight:1.7,marginBottom:28}}>Premium Dryfruits · Imported Chocolates · Luxury Packaging</p>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={()=>go("hampers")}
+                style={{background:G,color:W,border:"none",padding:"12px 26px",fontSize:12,fontWeight:600,cursor:"pointer",borderRadius:980}}>Shop Now →</button>
+              <button onClick={()=>go("categories")}
+                style={{background:"transparent",color:"rgba(255,255,255,0.7)",border:"1px solid rgba(255,255,255,0.4)",padding:"12px 26px",fontSize:12,fontWeight:600,cursor:"pointer",borderRadius:980}}>All Categories</button>
+            </div>
+          </div>
+          <div style={{textAlign:"center"}}>
+            <div style={{fontSize:130,lineHeight:1,filter:"drop-shadow(0 20px 40px rgba(0,0,0,0.3))"}}>{B.emoji}</div>
+            <div style={{marginTop:16,background:`${B.ac}15`,border:`1px solid ${B.ac}30`,borderRadius:12,padding:"10px 16px",display:"inline-flex",alignItems:"center",gap:8}}>
+              <div style={{width:22,height:22,borderRadius:4,background:`linear-gradient(135deg,${DK},${G})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11}}>🍫</div>
+              <span style={{fontSize:12,color:"white",fontWeight:600}}>Nuxchoco Hampers</span>
+            </div>
+          </div>
+        </div>
+        <div style={{position:"absolute",bottom:22,left:"50%",transform:"translateX(-50%)",display:"flex",gap:7}}>
+          {[0,1,2,3].map(i=>(
+            <button key={i} onClick={()=>{setBn(i);clearInterval(tr.current);}}
+              style={{width:i===bn?22:6,height:6,borderRadius:3,border:"none",background:i===bn?"white":"rgba(255,255,255,0.3)",cursor:"pointer",transition:"all .3s",padding:0}}/>
+          ))}
+        </div>
+      </section>
+
+      {/* MARQUEE */}
+      <div style={{background:G,padding:"10px 0",overflow:"hidden"}}>
+        <div style={{display:"flex",whiteSpace:"nowrap"}}>
+          {[0,1].map(k=>(
+            <div key={k} style={{display:"flex",flexShrink:0}}>
+              {["Wedding Hampers","Rakhi Special 2026","Diwali Gifts","Corporate Gifting","Pan India Delivery","Premium Dryfruits","Imported Chocolates","Custom Branding"].map((t,j)=>(
+                <span key={j} style={{fontSize:10,fontWeight:600,letterSpacing:2.5,textTransform:"uppercase",color:"white",padding:"0 26px"}}>{t} <span style={{opacity:0.4}}>◆</span></span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* CATEGORIES */}
+      <section id="categories" style={{background:GRAY,padding:"80px 6%"}}>
+        <div style={{maxWidth:1200,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:44}}>
+            <div style={{fontSize:11,letterSpacing:3,textTransform:"uppercase",color:G,marginBottom:10,fontWeight:600}}>Shop by Category</div>
+            <h2 style={{fontSize:"clamp(22px,4vw,40px)",color:DK,fontWeight:700,letterSpacing:-1}}>Hampers for Every Occasion</h2>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+            {CATS.map(cat=>(
+              <div key={cat.id} style={{background:cat.bg,borderRadius:18,padding:"30px 26px",position:"relative",overflow:"hidden",cursor:"pointer",border:`1px solid ${cat.color}15`,transition:"transform .2s"}}
+                onClick={()=>go("hampers")}
+                onMouseEnter={e=>e.currentTarget.style.transform="scale(1.01)"}
+                onMouseLeave={e=>e.currentTarget.style.transform="none"}>
+                <div style={{position:"absolute",right:-15,top:-15,fontSize:100,opacity:0.1}}>{cat.icon}</div>
+                <div style={{fontSize:10,letterSpacing:2.5,textTransform:"uppercase",color:cat.color,fontWeight:700,marginBottom:8}}>{cat.label}</div>
+                <h3 style={{fontSize:20,color:DK,fontWeight:700,marginBottom:6,letterSpacing:-0.5}}>{cat.desc}</h3>
+                <p style={{fontSize:12,color:GRAY2,marginBottom:16}}>From ₹{Math.min(...cat.items.map(h=>h.price)).toLocaleString()} · {cat.items.length} hampers</p>
+                <span style={{fontSize:13,color:cat.color,fontWeight:600}}>Shop {cat.label} →</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* HAMPERS */}
+      <section id="hampers" style={{background:W,padding:"80px 6%"}}>
+        <div style={{maxWidth:1200,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:44}}>
+            <div style={{fontSize:11,letterSpacing:3,textTransform:"uppercase",color:G,marginBottom:10,fontWeight:600}}>Our Products</div>
+            <h2 style={{fontSize:"clamp(22px,4vw,40px)",color:DK,fontWeight:700,letterSpacing:-1}}>Every Gift, Perfectly Curated</h2>
+          </div>
+          <div style={{display:"flex",gap:8,justifyContent:"center",marginBottom:32,flexWrap:"wrap"}}>
+            {["All",...CATS.map(c=>c.label)].map(c=>(
+              <button key={c} onClick={()=>setCatF(c)}
+                style={{padding:"7px 16px",borderRadius:980,fontSize:12,fontWeight:600,cursor:"pointer",border:"none",background:catF===c?DK:GRAY,color:catF===c?W:GRAY2,transition:"all .2s"}}>{c}</button>
+            ))}
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16}}>
+            {ALL.filter(h=>catF==="All"||h.cat===catF).map(h=>(
+              <div key={h.id} style={{background:W,borderRadius:14,overflow:"hidden",border:"1px solid #F0F0F0",boxShadow:"0 2px 14px rgba(0,0,0,0.05)",transition:"transform .2s,box-shadow .2s"}}
+                onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow="0 10px 28px rgba(0,0,0,0.09)";}}
+                onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="0 2px 14px rgba(0,0,0,0.05)";}}>
+                <div style={{height:128,background:h.catBg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:50,position:"relative"}}>
+                  {h.emoji}
+                  <span style={{position:"absolute",top:8,left:10,fontSize:8,padding:"3px 7px",borderRadius:6,background:h.catColor,color:W,fontWeight:700}}>{h.cat}</span>
+                </div>
+                <div style={{padding:"14px"}}>
+                  <h3 style={{fontSize:14,color:DK,margin:"0 0 4px",fontWeight:700}}>{h.name}</h3>
+                  <p style={{fontSize:11,color:GRAY2,lineHeight:1.6,marginBottom:10}}>{h.desc}</p>
+                  <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:12}}>
+                    <span style={{fontSize:17,color:G,fontWeight:700}}>₹{h.price.toLocaleString()}</span>
+                    <span style={{fontSize:11,color:GRAY2,textDecoration:"line-through"}}>₹{h.op}</span>
+                    <span style={{fontSize:9,color:"#4CAF50",fontWeight:700,background:"#E8F5E9",padding:"2px 5px",borderRadius:5}}>{Math.round((1-h.price/h.op)*100)}% OFF</span>
+                  </div>
+                  <button onClick={()=>addToCart(h)}
+                    style={{width:"100%",background:DK,color:W,border:"none",padding:"9px",fontSize:11,fontWeight:600,cursor:"pointer",borderRadius:8}}>
+                    🛒 Add to Cart
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* STATS */}
+      <section style={{background:DK,padding:"68px 6%"}}>
+        <div style={{maxWidth:1000,margin:"0 auto",display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:1,background:"rgba(255,255,255,0.04)"}}>
+          {[["₹6.25L Cr","India Gifting 2024"],["₹14,000 Cr","Corporate Gifting"],["₹25,000 Cr","Chocolate Market"],["200M+","Rakhi Celebrators"],["90%","Gift Chocolates"]].map(([n,l],i)=>(
+            <div key={i} style={{background:DK,padding:"30px 12px",textAlign:"center"}}>
+              <div style={{fontSize:22,color:G,fontWeight:700}}>{n}</div>
+              <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",marginTop:6,lineHeight:1.5}}>{l}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CONTACT */}
+      <section id="contact" style={{background:W,padding:"80px 6%",textAlign:"center"}}>
+        <div style={{maxWidth:520,margin:"0 auto"}}>
+          <div style={{width:56,height:56,borderRadius:14,background:`linear-gradient(135deg,${DK},${G})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,margin:"0 auto 20px"}}>🍫</div>
+          <div style={{fontSize:11,letterSpacing:3,textTransform:"uppercase",color:G,marginBottom:10,fontWeight:600}}>Get in Touch</div>
+          <h2 style={{fontSize:"clamp(20px,3.5vw,36px)",color:DK,fontWeight:700,marginBottom:10,letterSpacing:-1}}>Ready to Gift Something Extraordinary?</h2>
+          <p style={{fontSize:14,color:GRAY2,lineHeight:1.7,marginBottom:30}}>Whether it is 1 hamper or 5,000 — we make every moment unforgettable.</p>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:28}}>
+            {[["📱","WhatsApp","Order instantly"],["📸","Instagram","@nuxchocohampers"],["📦","Corporate","Bulk 50+ orders"]].map(([ic,t,d])=>(
+              <div key={t} style={{background:GRAY,borderRadius:12,padding:"16px 10px",textAlign:"center"}}>
+                <div style={{fontSize:22,marginBottom:6}}>{ic}</div>
+                <div style={{fontSize:11,fontWeight:700,color:DK,marginBottom:2}}>{t}</div>
+                <div style={{fontSize:10,color:GRAY2}}>{d}</div>
+              </div>
+            ))}
+          </div>
+          <button onClick={()=>setShowCart(true)}
+            style={{background:G,color:W,border:"none",padding:"14px 36px",fontSize:12,fontWeight:700,cursor:"pointer",borderRadius:980}}>
+            🎁 Order Now
+          </button>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer style={{background:DK,borderTop:"1px solid rgba(255,255,255,0.05)",padding:"30px 6%"}}>
+        <div style={{maxWidth:1200,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:26,marginBottom:22}}>
+          <div>
+            <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:10}}>
+              <div style={{width:24,height:24,borderRadius:4,background:`linear-gradient(135deg,${DK},${G})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12}}>🍫</div>
+              <span style={{fontSize:13,color:W,fontWeight:700}}>Nuxchoco</span>
+            </div>
+            <p style={{fontSize:10,color:"rgba(255,255,255,0.3)",lineHeight:1.7}}>India's Premium Dryfruit & Chocolate Hamper Brand</p>
+          </div>
+          {[{t:"Categories",l:["Wedding","Rakhi","Diwali","Corporate"]},
+            {t:"Company",l:["About Us","Our Story","Contact"]},
+            {t:"Support",l:["Track Order","Returns","FAQ"]}
+          ].map(col=>(
+            <div key={col.t}>
+              <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",letterSpacing:1.5,textTransform:"uppercase",marginBottom:12,fontWeight:600}}>{col.t}</div>
+              {col.l.map(l=><div key={l} style={{fontSize:11,color:"rgba(255,255,255,0.5)",marginBottom:6,cursor:"pointer"}}>{l}</div>)}
+            </div>
+          ))}
+        </div>
+        <div style={{maxWidth:1200,margin:"0 auto",paddingTop:16,borderTop:"1px solid rgba(255,255,255,0.05)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
+          <div style={{fontSize:10,color:"rgba(255,255,255,0.18)"}}>© 2026 Nuxchoco Hampers · GST Registered · Made with ❤️ in India</div>
+          <button onClick={()=>setPg("admin")} style={{background:"none",border:"none",fontSize:9,color:"rgba(255,255,255,0.15)",cursor:"pointer"}}>Admin</button>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.render(React.createElement(App), document.getElementById("root"));
+</script>
+</body>
+</html>
