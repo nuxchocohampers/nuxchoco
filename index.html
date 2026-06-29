@@ -329,7 +329,7 @@ function render() {
               <input class="login-input" type="password" placeholder="Password..." id="passInput" style="${state.passErr ? 'border-color:#F44336;' : ''}" onkeydown="if(event.key==='Enter'){doLogin();}" value="${state.pass}"/>
               ${state.passErr ? '<div class="error-msg">Wrong password!</div>' : ''}
               <button class="login-btn" onclick="doLogin()">Login</button>
-              <div class="login-hint">Password: nuxchoco2026</div>
+              
             </div>
           </div>` : `
           <div class="admin-content">
