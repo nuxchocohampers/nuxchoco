@@ -3,575 +3,578 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Nuxchoco Hampers — Premium Gifting</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<title>Nuxchoco Hampers</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;}
+body{font-family:-apple-system,sans-serif;background:#fff;color:#100C04;}
+nav{position:sticky;top:0;z-index:999;background:rgba(16,12,4,0.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(201,147,58,0.2);padding:0 5%;}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:54px;max-width:1200px;margin:0 auto;}
+.logo{display:flex;align-items:center;gap:10px;cursor:pointer;text-decoration:none;}
+.logo-icon{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#100C04,#C9933A);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:16px;color:#C9933A;font-weight:700;}
+.nav-links{display:flex;gap:20px;align-items:center;}
+.nav-link{color:rgba(255,255,255,0.6);text-decoration:none;font-size:13px;cursor:pointer;background:none;border:none;}
+.btn-gold{background:#C9933A;color:white;border:none;padding:9px 20px;border-radius:980px;font-size:12px;font-weight:700;cursor:pointer;}
+.btn-cart{background:rgba(255,255,255,0.1);color:white;border:none;padding:9px 16px;border-radius:980px;font-size:12px;cursor:pointer;position:relative;}
+.cart-badge{background:#C9933A;color:white;border-radius:50%;font-size:9px;padding:2px 5px;margin-left:4px;}
+.hero{min-height:88vh;display:flex;align-items:center;padding:70px 6%;position:relative;overflow:hidden;transition:background 0.8s;}
+.hero-content{max-width:1100px;width:100%;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:center;}
+.hero-tag{display:inline-block;border-radius:20px;padding:4px 12px;margin-bottom:18px;font-size:10px;font-weight:700;letter-spacing:1px;}
+.hero h1{font-size:clamp(32px,5vw,58px);color:white;line-height:1.1;font-weight:700;margin-bottom:12px;letter-spacing:-1px;}
+.hero p{font-size:15px;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:28px;}
+.hero-btns{display:flex;gap:10px;}
+.btn-outline-white{background:transparent;color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.4);padding:12px 26px;border-radius:980px;font-size:12px;font-weight:600;cursor:pointer;}
+.hero-visual{text-align:center;}
+.hero-emoji{font-size:130px;line-height:1;filter:drop-shadow(0 20px 40px rgba(0,0,0,0.3));}
+.hero-badge{margin-top:16px;display:inline-flex;align-items:center;gap:8px;border-radius:12px;padding:10px 16px;}
+.dots{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:7px;}
+.dot{height:6px;border-radius:3px;border:none;cursor:pointer;transition:all .3s;padding:0;}
+.marquee{background:#C9933A;padding:10px 0;overflow:hidden;}
+.marquee-track{display:flex;white-space:nowrap;}
+.marquee-item{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:white;padding:0 26px;}
+section{padding:80px 6%;}
+.section-label{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#C9933A;margin-bottom:10px;font-weight:600;}
+.section-title{font-size:clamp(22px,4vw,40px);font-weight:700;letter-spacing:-1px;margin-bottom:40px;}
+.cats-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.cat-card{border-radius:18px;padding:30px 26px;position:relative;overflow:hidden;cursor:pointer;transition:transform .2s;}
+.cat-card:hover{transform:scale(1.01);}
+.cat-card-icon{position:absolute;right:-15px;top:-15px;font-size:100px;opacity:0.1;}
+.cat-label{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;margin-bottom:8px;}
+.cat-card h3{font-size:20px;font-weight:700;margin-bottom:6px;letter-spacing:-0.5px;}
+.cat-card p{font-size:12px;color:#86868B;margin-bottom:16px;}
+.cat-link{font-size:13px;font-weight:600;}
+.filter-tabs{display:flex;gap:8px;justify-content:center;margin-bottom:32px;flex-wrap:wrap;}
+.filter-tab{padding:7px 16px;border-radius:980px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.products-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.product-card{background:white;border-radius:14px;overflow:hidden;border:1px solid #F0F0F0;box-shadow:0 2px 14px rgba(0,0,0,0.05);transition:transform .2s,box-shadow .2s;}
+.product-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,0.09);}
+.product-img{height:128px;display:flex;align-items:center;justify-content:center;font-size:50px;position:relative;}
+.product-cat-tag{position:absolute;top:8px;left:10px;font-size:8px;padding:3px 7px;border-radius:6px;color:white;font-weight:700;}
+.product-body{padding:14px;}
+.product-body h3{font-size:14px;font-weight:700;margin-bottom:4px;}
+.product-body p{font-size:11px;color:#86868B;line-height:1.6;margin-bottom:10px;}
+.price-row{display:flex;align-items:center;gap:7px;margin-bottom:12px;}
+.price{font-size:17px;color:#C9933A;font-weight:700;}
+.price-old{font-size:11px;color:#86868B;text-decoration:line-through;}
+.price-off{font-size:9px;color:#4CAF50;font-weight:700;background:#E8F5E9;padding:2px 5px;border-radius:5px;}
+.btn-add{width:100%;background:#100C04;color:white;border:none;padding:9px;font-size:11px;font-weight:600;cursor:pointer;border-radius:8px;}
+.stats{background:#100C04;padding:68px 6%;}
+.stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:rgba(255,255,255,0.04);max-width:1000px;margin:0 auto;}
+.stat-box{background:#100C04;padding:30px 12px;text-align:center;}
+.stat-num{font-size:22px;color:#C9933A;font-weight:700;}
+.stat-lbl{font-size:10px;color:rgba(255,255,255,0.3);margin-top:6px;line-height:1.5;}
+.contact-section{background:white;text-align:center;}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:28px;max-width:520px;margin-left:auto;margin-right:auto;}
+.contact-card{background:#F5F5F7;border-radius:12px;padding:16px 10px;text-align:center;}
+.contact-card .icon{font-size:22px;margin-bottom:6px;}
+.contact-card h4{font-size:11px;font-weight:700;margin-bottom:2px;}
+.contact-card p{font-size:10px;color:#86868B;}
+footer{background:#100C04;border-top:1px solid rgba(255,255,255,0.05);padding:30px 6%;}
+.footer-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:26px;margin-bottom:22px;}
+.footer-logo{display:flex;align-items:center;gap:7px;margin-bottom:10px;}
+.footer-logo span{font-size:13px;color:white;font-weight:700;}
+.footer-col-title{font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;font-weight:600;}
+.footer-link{font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:6px;cursor:pointer;display:block;}
+.footer-bottom{max-width:1200px;margin:0 auto;padding-top:16px;border-top:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;align-items:center;}
+.footer-copy{font-size:10px;color:rgba(255,255,255,0.18);}
+.admin-btn{background:none;border:none;font-size:9px;color:rgba(255,255,255,0.12);cursor:pointer;}
+/* CART */
+.cart-overlay{position:fixed;inset:0;z-index:1000;display:flex;}
+.cart-backdrop{flex:1;background:rgba(0,0,0,0.4);}
+.cart-panel{width:380px;background:white;display:flex;flex-direction:column;box-shadow:-8px 0 40px rgba(0,0,0,0.15);}
+.cart-header{padding:20px;border-bottom:1px solid #F0F0F0;display:flex;justify-content:space-between;align-items:center;}
+.cart-header h3{font-size:18px;font-weight:700;}
+.cart-close{background:none;border:none;font-size:20px;cursor:pointer;color:#86868B;}
+.cart-items{flex:1;overflow-y:auto;padding:16px;}
+.cart-empty{text-align:center;padding:40px 20px;color:#86868B;}
+.cart-empty .icon{font-size:40px;margin-bottom:8px;}
+.cart-item{display:flex;gap:12px;align-items:center;margin-bottom:16px;padding:12px;background:#F5F5F7;border-radius:10px;}
+.cart-item-emoji{font-size:28px;}
+.cart-item-info{flex:1;}
+.cart-item-name{font-size:13px;font-weight:700;}
+.cart-item-price{font-size:12px;color:#C9933A;font-weight:700;}
+.qty-controls{display:flex;align-items:center;gap:8px;}
+.qty-btn{width:26px;height:26px;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;}
+.qty-btn-minus{border:1px solid #C9933A;background:white;color:#C9933A;}
+.qty-btn-plus{border:none;background:#C9933A;color:white;}
+.qty-num{font-size:13px;font-weight:700;min-width:16px;text-align:center;}
+.cart-footer{padding:16px;border-top:1px solid #F0F0F0;}
+.cart-total-row{display:flex;justify-content:space-between;margin-bottom:14px;}
+.cart-total-label{font-size:15px;font-weight:600;}
+.cart-total-amount{font-size:20px;font-weight:700;color:#C9933A;}
+.form-group{margin-bottom:8px;}
+.form-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#86868B;font-weight:600;display:block;margin-bottom:4px;}
+.form-input{width:100%;padding:10px 12px;border-radius:8px;border:1px solid #E0E0E0;font-size:13px;outline:none;box-sizing:border-box;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.pay-btn{width:100%;background:#C9933A;color:white;border:none;padding:14px;font-size:13px;font-weight:700;cursor:pointer;border-radius:12px;margin-top:4px;}
+/* ADMIN */
+.admin-page{min-height:100vh;background:#F5F5F7;font-family:-apple-system,sans-serif;}
+.admin-nav{background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,0,0,0.08);padding:0 4%;position:sticky;top:0;z-index:99;}
+.admin-nav-inner{display:flex;align-items:center;justify-content:space-between;height:50px;max-width:1100px;margin:0 auto;}
+.admin-content{max-width:1100px;margin:0 auto;padding:20px 4%;}
+.stats-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;}
+.stat-card{background:white;border-radius:12px;padding:14px 12px;box-shadow:0 2px 10px rgba(0,0,0,0.05);}
+.stat-card-icon{font-size:20px;margin-bottom:3px;}
+.stat-card-value{font-size:20px;font-weight:700;}
+.stat-card-label{font-size:9px;color:#86868B;margin-top:2px;text-transform:uppercase;letter-spacing:1px;}
+.orders-table{background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.05);overflow:hidden;}
+.orders-header{padding:12px 16px;border-bottom:1px solid #F5F5F5;display:flex;justify-content:space-between;align-items:center;}
+.orders-header h3{font-size:15px;font-weight:700;}
+.order-row{padding:12px 16px;border-bottom:1px solid #F8F8F8;display:grid;grid-template-columns:1.5fr 1fr 1fr auto;gap:10px;align-items:center;}
+.order-name{font-size:12px;font-weight:700;}
+.order-meta{font-size:10px;color:#86868B;}
+.order-item{font-size:11px;font-weight:600;color:#5A3D1A;}
+.order-price{font-size:15px;color:#C9933A;font-weight:700;}
+.status-select{padding:5px 7px;border-radius:7px;font-size:10px;font-weight:700;background:white;cursor:pointer;outline:none;}
+.del-btn{background:#FFF5F5;border:1px solid #FFE0E0;color:#F44336;padding:5px 8px;border-radius:7px;cursor:pointer;font-size:11px;font-weight:700;}
+.empty-orders{padding:44px;text-align:center;}
+.login-box{display:flex;align-items:center;justify-content:center;min-height:80vh;padding:20px;}
+.login-card{background:white;border-radius:20px;padding:36px 32px;width:100%;max-width:320px;box-shadow:0 8px 40px rgba(0,0,0,0.1);}
+.login-icon{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#100C04,#C9933A);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;}
+.login-title{font-size:20px;font-weight:700;text-align:center;margin-bottom:4px;}
+.login-sub{font-size:11px;color:#86868B;text-align:center;margin-bottom:18px;}
+.login-input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #E0E0E0;font-size:14px;outline:none;margin-bottom:12px;box-sizing:border-box;}
+.login-btn{width:100%;background:#C9933A;color:white;border:none;padding:12px;font-size:12px;font-weight:700;cursor:pointer;border-radius:12px;}
+.error-msg{font-size:11px;color:#F44336;margin-bottom:10px;}
+.login-hint{font-size:10px;color:#CCC;text-align:center;margin-top:12px;}
+.filter-btns{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.filter-btn{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:none;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+.cat-tag{font-size:8px;padding:2px 6px;border-radius:8px;background:#F5F5F7;color:#86868B;font-weight:600;margin-left:4px;}
+@media(max-width:768px){
+  .hero-content{grid-template-columns:1fr;}
+  .cats-grid{grid-template-columns:1fr;}
+  .products-grid{grid-template-columns:1fr 1fr;}
+  .stats-grid{grid-template-columns:repeat(3,1fr);}
+  .footer-grid{grid-template-columns:1fr 1fr;}
+  .cart-panel{width:100%;}
+  .stats-cards{grid-template-columns:repeat(3,1fr);}
+  .contact-grid{grid-template-columns:1fr;}
+  .nav-links .nav-link{display:none;}
+}
 </style>
 </head>
 <body>
-<div id="root"></div>
-<script type="text/babel">
 
+<div id="app"></div>
+
+<script>
 const SUPABASE_URL = "https://pieqxnddhlodjtfmgubf.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpZXF4bmRkaGxvZGpmdm1ndWJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MzI4NTgsImV4cCI6MjA5ODMwODg1OH0.htxGyDiMRc5ZofRicao0VLn6S5S8HJiD4OKw7fKrSP8";
 const RZP_KEY = "rzp_test_T7U1tanOtJMpOz";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const G="#C9933A",DK="#100C04",W="#fff",GRAY="#F5F5F7",GRAY2="#86868B";
-
-const CATS=[
-  {id:"wedding",label:"Wedding",icon:"💒",color:"#8B6914",bg:"#FFF8EE",
-   desc:"Elegant hampers for your most special day",
-   items:[
-     {id:11,name:"Wedding Return Gift",price:599,op:799,desc:"Elegant dryfruit box for guests",emoji:"💒"},
-     {id:12,name:"Bridal Welcome Hamper",price:1999,op:2499,desc:"Luxury welcome hamper",emoji:"👰"},
-     {id:13,name:"Wedding Bulk Pack",price:499,op:699,desc:"Per piece — min 50 units",emoji:"📦"},
-   ]},
-  {id:"rakhi",label:"Rakhi",icon:"🧡",color:"#C2185B",bg:"#FFF0F5",
-   desc:"Indias first premium Raksha Bandhan hamper",
-   items:[
-     {id:21,name:"Rakhi Classic",price:699,op:899,desc:"Dryfruits + chocolates + card",emoji:"🧡"},
-     {id:22,name:"Rakhi Premium",price:1299,op:1699,desc:"Imported chocolates + gold box",emoji:"🎀"},
-     {id:23,name:"Rakhi Corporate",price:599,op:799,desc:"Bulk 50+ units",emoji:"🏢"},
-   ]},
-  {id:"diwali",label:"Diwali",icon:"🪔",color:"#C9933A",bg:"#FDF6EC",
-   desc:"Gold-ribbon luxury hampers for Diwali",
-   items:[
-     {id:31,name:"Diwali Standard",price:799,op:999,desc:"Premium dryfruits + chocolates",emoji:"🪔"},
-     {id:32,name:"Diwali Premium",price:1799,op:2299,desc:"Luxury gold box",emoji:"✨"},
-     {id:33,name:"Diwali Corporate",price:699,op:899,desc:"Branded 50+ units",emoji:"🏢"},
-   ]},
-  {id:"corporate",label:"Corporate",icon:"🏢",color:"#1565C0",bg:"#F0F4FF",
-   desc:"Custom-branded hampers for your team",
-   items:[
-     {id:41,name:"Corporate Standard",price:699,op:899,desc:"Logo sticker hamper",emoji:"🏢"},
-     {id:42,name:"Corporate Premium",price:1499,op:1999,desc:"Luxury logo box",emoji:"👔"},
-     {id:43,name:"Corporate Luxury",price:2999,op:3999,desc:"VIP client hamper",emoji:"👑"},
-   ]},
+const CATS = [
+  {id:"wedding",label:"Wedding",icon:"💒",color:"#8B6914",bg:"#FFF8EE",desc:"Elegant hampers for your most special day",
+   items:[{id:11,name:"Wedding Return Gift",price:599,op:799,desc:"Elegant dryfruit box for guests",emoji:"💒"},
+          {id:12,name:"Bridal Welcome Hamper",price:1999,op:2499,desc:"Luxury welcome hamper",emoji:"👰"},
+          {id:13,name:"Wedding Bulk Pack",price:499,op:699,desc:"Per piece min 50 units",emoji:"📦"}]},
+  {id:"rakhi",label:"Rakhi",icon:"🧡",color:"#C2185B",bg:"#FFF0F5",desc:"Premium Raksha Bandhan hampers",
+   items:[{id:21,name:"Rakhi Classic",price:699,op:899,desc:"Dryfruits + chocolates + card",emoji:"🧡"},
+          {id:22,name:"Rakhi Premium",price:1299,op:1699,desc:"Imported chocolates + gold box",emoji:"🎀"},
+          {id:23,name:"Rakhi Corporate",price:599,op:799,desc:"Bulk 50 plus units",emoji:"🏢"}]},
+  {id:"diwali",label:"Diwali",icon:"🪔",color:"#C9933A",bg:"#FDF6EC",desc:"Gold-ribbon luxury hampers for Diwali",
+   items:[{id:31,name:"Diwali Standard",price:799,op:999,desc:"Premium dryfruits + chocolates",emoji:"🪔"},
+          {id:32,name:"Diwali Premium",price:1799,op:2299,desc:"Luxury gold box",emoji:"✨"},
+          {id:33,name:"Diwali Corporate",price:699,op:899,desc:"Branded 50 plus units",emoji:"🏢"}]},
+  {id:"corporate",label:"Corporate",icon:"🏢",color:"#1565C0",bg:"#F0F4FF",desc:"Custom-branded hampers for your team",
+   items:[{id:41,name:"Corporate Standard",price:699,op:899,desc:"Logo sticker hamper",emoji:"🏢"},
+          {id:42,name:"Corporate Premium",price:1499,op:1999,desc:"Luxury logo box",emoji:"👔"},
+          {id:43,name:"Corporate Luxury",price:2999,op:3999,desc:"VIP client hamper",emoji:"👑"}]}
 ];
 
-const ALL=CATS.flatMap(c=>c.items.map(h=>({...h,cat:c.label,catId:c.id,catColor:c.color,catBg:c.bg})));
-const SC={"New":G,"Confirmed":"#2196F3","Packed":"#9C27B0","Delivered":"#4CAF50","Cancelled":"#F44336"};
+const ALL_ITEMS = CATS.flatMap(c => c.items.map(h => ({...h, cat: c.label, catId: c.id, catColor: c.color, catBg: c.bg})));
 
-function App(){
-  const [pg,setPg]=React.useState("home");
-  const [bn,setBn]=React.useState(0);
-  const [catF,setCatF]=React.useState("All");
-  const [cart,setCart]=React.useState([]);
-  const [showCart,setShowCart]=React.useState(false);
-  const [orders,setOrders]=React.useState([]);
-  const [adminIn,setAdminIn]=React.useState(false);
-  const [pass,setPass]=React.useState("");
-  const [passErr,setPassErr]=React.useState(false);
-  const [form,setForm]=React.useState({name:"",phone:"",email:"",addr:"",city:"",pin:"",note:""});
-  const [paying,setPaying]=React.useState(false);
-  const [done,setDone]=React.useState(false);
-  const [fCat,setFCat]=React.useState("All");
-  const [loading,setLoading]=React.useState(false);
-  const tr=React.useRef();
+const BANNERS = [
+  {tag:"New 2026", sub:"Indias First Premium Raksha Bandhan Hamper", emoji:"🧡", bg:"linear-gradient(135deg,#2D0A1A,#5C1A3A)", ac:"#E8A0B8"},
+  {tag:"Bestseller", sub:"Gold-Ribbon Luxury Gifting Boxes", emoji:"🪔", bg:"linear-gradient(135deg,#1A1000,#3D2800)", ac:"#C9933A"},
+  {tag:"Corporate", sub:"Custom-Branded Hampers for Your Entire Team", emoji:"🏢", bg:"linear-gradient(135deg,#001A2D,#003355)", ac:"#4A9EE8"},
+  {tag:"Elegant", sub:"Return Gifts Your Guests Will Remember", emoji:"💒", bg:"linear-gradient(135deg,#1A0D00,#3D2000)", ac:"#D4A76A"}
+];
 
-  React.useEffect(()=>{
-    tr.current=setInterval(()=>setBn(p=>(p+1)%4),5000);
-    return()=>clearInterval(tr.current);
-  },[]);
+const STATUS_COLORS = {New:"#C9933A",Confirmed:"#2196F3",Packed:"#9C27B0",Delivered:"#4CAF50",Cancelled:"#F44336"};
 
-  const loadOrders=async()=>{
-    setLoading(true);
-    const{data}=await sb.from("orders").select("*").order("created_at",{ascending:false});
-    if(data) setOrders(data);
-    setLoading(false);
-  };
+let state = {
+  page: "home",
+  bannerIdx: 0,
+  catFilter: "All",
+  cart: [],
+  showCart: false,
+  orders: [],
+  adminIn: false,
+  pass: "",
+  passErr: false,
+  form: {name:"", phone:"", addr:"", city:"", note:""},
+  paying: false,
+  orderCatFilter: "All",
+  loading: false
+};
 
-  React.useEffect(()=>{if(adminIn)loadOrders();},[adminIn]);
-
-  const cartTotal=cart.reduce((s,c)=>s+c.price*c.qty,0);
-  const cartCount=cart.reduce((s,c)=>s+c.qty,0);
-
-  const addToCart=(h)=>{
-    const ex=cart.find(c=>c.id===h.id);
-    if(ex) setCart(cart.map(c=>c.id===h.id?{...c,qty:c.qty+1}:c));
-    else setCart([...cart,{...h,qty:1}]);
-    setShowCart(true);
-  };
-
-  const removeFromCart=(id)=>setCart(cart.filter(c=>c.id!==id));
-  const updateQty=(id,qty)=>{
-    if(qty<1){removeFromCart(id);return;}
-    setCart(cart.map(c=>c.id===id?{...c,qty}:c));
-  };
-
-  const go=id=>document.getElementById(id)?.scrollIntoView({behavior:"smooth"});
-  const I={width:"100%",padding:"12px 14px",borderRadius:10,border:"1px solid #E0E0E0",
-    fontFamily:"sans-serif",fontSize:14,background:W,outline:"none",boxSizing:"border-box"};
-
-  const doRazorpay=()=>{
-    if(!form.name||!form.phone||!form.addr){alert("Name, phone aur address zaroori hai!");return;}
-    setPaying(true);
-    const options={
-      key:RZP_KEY,
-      amount:cartTotal*100,
-      currency:"INR",
-      name:"Nuxchoco Hampers",
-      description:"Premium Gift Hamper",
-      handler:async(response)=>{
-        // Save to Supabase
-        for(const item of cart){
-          await sb.from("orders").insert({
-            name:form.name,phone:form.phone,
-            address:`${form.addr}, ${form.city} ${form.pin}`,
-            city:form.city,hamper_name:item.name,
-            category:item.cat,quantity:item.qty,
-            total:item.price*item.qty,status:"New",note:form.note
-          });
-        }
-        setCart([]);
-        setShowCart(false);
-        setDone(true);
-        setPaying(false);
-        setPg("thankyou");
-      },
-      prefill:{name:form.name,contact:form.phone,email:form.email},
-      theme:{color:G},
-      modal:{ondismiss:()=>setPaying(false)}
-    };
-    const rzp=new window.Razorpay(options);
-    rzp.open();
-  };
-
-  const updateStatus=async(id,status)=>{
-    await sb.from("orders").update({status}).eq("id",id);
-    setOrders(orders.map(o=>o.id===id?{...o,status}:o));
-  };
-
-  const deleteOrder=async(id)=>{
-    await sb.from("orders").delete().eq("id",id);
-    setOrders(orders.filter(o=>o.id!==id));
-  };
-
-  const BANNERS=[
-    {tag:"New 2026",sub:"Indias First Premium
-Raksha Bandhan Hamper",emoji:"🧡",bg:"linear-gradient(135deg,#2D0A1A,#5C1A3A)",ac:"#E8A0B8"},
-    {tag:"Bestseller",sub:"Gold-Ribbon Luxury
-Gifting Boxes",emoji:"🪔",bg:"linear-gradient(135deg,#1A1000,#3D2800)",ac:G},
-    {tag:"Corporate",sub:"Custom-Branded Hampers
-for Your Entire Team",emoji:"🏢",bg:"linear-gradient(135deg,#001A2D,#003355)",ac:"#4A9EE8"},
-    {tag:"Elegant",sub:"Return Gifts Your
-Guests Will Remember",emoji:"💒",bg:"linear-gradient(135deg,#1A0D00,#3D2000)",ac:"#D4A76A"},
-  ];
-  const B=BANNERS[bn];
-  const fOrders=fCat==="All"?orders:orders.filter(o=>o.category===fCat);
-  const rev=orders.filter(o=>o.status!=="Cancelled").reduce((s,o)=>s+o.total,0);
-
-  // THANK YOU
-  if(pg==="thankyou") return(
-    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:GRAY}}>
-      <div style={{background:W,borderRadius:20,padding:"50px 40px",textAlign:"center",maxWidth:420,boxShadow:"0 8px 40px rgba(0,0,0,0.08)"}}>
-        <div style={{fontSize:64,marginBottom:16}}>🎉</div>
-        <h2 style={{fontSize:26,color:DK,fontWeight:700,marginBottom:10}}>Order Placed!</h2>
-        <p style={{fontSize:15,color:GRAY2,lineHeight:1.7,marginBottom:28}}>
-          Aapka order successfully place ho gaya!<br/>Hum jald hi WhatsApp karenge. 😊
-        </p>
-        <button onClick={()=>{setPg("home");setDone(false);}}
-          style={{background:G,color:W,border:"none",padding:"14px 32px",fontSize:13,
-            fontWeight:600,cursor:"pointer",borderRadius:980}}>← Back to Home</button>
-      </div>
-    </div>
-  );
-
-  // ADMIN
-  if(pg==="admin") return(
-    <div style={{minHeight:"100vh",background:GRAY,fontFamily:"-apple-system,sans-serif"}}>
-      <nav style={{background:"rgba(255,255,255,0.95)",backdropFilter:"blur(20px)",
-        borderBottom:"1px solid rgba(0,0,0,0.08)",padding:"0 4%",position:"sticky",top:0,zIndex:99}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",height:50,maxWidth:1100,margin:"0 auto"}}>
-          <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <div style={{width:28,height:28,borderRadius:6,background:`linear-gradient(135deg,${DK},${G})`,
-              display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🍫</div>
-            <div>
-              <div style={{fontSize:13,color:DK,fontWeight:700}}>Nuxchoco Admin</div>
-              <div style={{fontSize:8,color:GRAY2,letterSpacing:1.5}}>ORDER DASHBOARD</div>
-            </div>
-          </div>
-          <div style={{display:"flex",gap:8}}>
-            {adminIn&&<button onClick={loadOrders}
-              style={{background:"#E8F5E9",color:"#2E7D32",border:"none",padding:"7px 14px",fontSize:11,fontWeight:700,cursor:"pointer",borderRadius:8}}>🔄 Refresh</button>}
-            <button onClick={()=>{setAdminIn(false);setPg("home");}}
-              style={{background:"none",color:GRAY2,border:`1px solid #E0E0E0`,padding:"7px 14px",fontSize:11,cursor:"pointer",borderRadius:8}}>Logout</button>
-          </div>
-        </div>
-      </nav>
-
-      {!adminIn?(
-        <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"80vh",padding:20}}>
-          <div style={{background:W,borderRadius:20,padding:"36px 32px",width:"100%",maxWidth:320,boxShadow:"0 8px 40px rgba(0,0,0,0.08)"}}>
-            <div style={{width:56,height:56,borderRadius:14,background:`linear-gradient(135deg,${DK},${G})`,
-              display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,margin:"0 auto 16px"}}>🍫</div>
-            <h2 style={{fontSize:20,color:DK,textAlign:"center",fontWeight:700,marginBottom:4}}>Admin Login</h2>
-            <p style={{fontSize:11,color:GRAY2,textAlign:"center",marginBottom:18}}>Nuxchoco Dashboard</p>
-            <input type="password" placeholder="Password..." value={pass}
-              onChange={e=>setPass(e.target.value)}
-              onKeyDown={e=>{if(e.key==="Enter"){if(pass==="nuxchoco2026"){setAdminIn(true);setPassErr(false);}else setPassErr(true);}}}
-              style={{...I,marginBottom:passErr?6:12,border:passErr?"1px solid #F44336":"1px solid #E0E0E0"}}/>
-            {passErr&&<div style={{fontSize:11,color:"#F44336",marginBottom:10}}>❌ Wrong password!</div>}
-            <button onClick={()=>{if(pass==="nuxchoco2026"){setAdminIn(true);setPassErr(false);}else setPassErr(true);}}
-              style={{width:"100%",background:G,color:W,border:"none",padding:"12px",fontSize:12,fontWeight:700,cursor:"pointer",borderRadius:12}}>Login →</button>
-            <div style={{fontSize:10,color:"#CCC",textAlign:"center",marginTop:12}}>Password: nuxchoco2026</div>
-          </div>
-        </div>
-      ):(
-        <div style={{maxWidth:1100,margin:"0 auto",padding:"20px 4%"}}>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10,marginBottom:16}}>
-            {[{l:"Total",v:orders.length,i:"📦",c:DK},{l:"New",v:orders.filter(o=>o.status==="New").length,i:"🆕",c:G},
-              {l:"Delivered",v:orders.filter(o=>o.status==="Delivered").length,i:"✅",c:"#4CAF50"},
-              {l:"Revenue",v:`₹${rev.toLocaleString()}`,i:"💰",c:"#9C27B0"},
-              {l:"Pending",v:orders.filter(o=>["Confirmed","Packed"].includes(o.status)).length,i:"⏳",c:"#2196F3"}
-            ].map((s,i)=>(
-              <div key={i} style={{background:W,borderRadius:12,padding:"14px 12px",boxShadow:"0 2px 10px rgba(0,0,0,0.05)",borderLeft:`3px solid ${s.c}`}}>
-                <div style={{fontSize:20,marginBottom:3}}>{s.i}</div>
-                <div style={{fontSize:20,color:s.c,fontWeight:700}}>{s.v}</div>
-                <div style={{fontSize:9,color:GRAY2,marginTop:2,textTransform:"uppercase",letterSpacing:1}}>{s.l}</div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>
-            {["All","Wedding","Rakhi","Diwali","Corporate"].map(c=>(
-              <button key={c} onClick={()=>setFCat(c)}
-                style={{padding:"6px 14px",borderRadius:20,fontSize:11,fontWeight:600,cursor:"pointer",border:"none",
-                  background:fCat===c?G:W,color:fCat===c?W:"#5A3D1A",boxShadow:"0 1px 4px rgba(0,0,0,0.06)"}}>
-                {{"Wedding":"💒 ","Rakhi":"🧡 ","Diwali":"🪔 ","Corporate":"🏢 "}[c]||"📦 "}{c}
-              </button>
-            ))}
-          </div>
-
-          <div style={{background:W,borderRadius:12,boxShadow:"0 2px 10px rgba(0,0,0,0.05)",overflow:"hidden"}}>
-            <div style={{padding:"12px 16px",borderBottom:"1px solid #F5F5F5",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <h3 style={{fontSize:15,color:DK,margin:0,fontWeight:700}}>{fCat==="All"?"All Orders":`${fCat} Orders`}</h3>
-              <span style={{fontSize:10,color:GRAY2}}>{loading?"Loading...":fOrders.length+" orders"}</span>
-            </div>
-            {fOrders.length===0?(
-              <div style={{padding:"44px",textAlign:"center"}}>
-                <div style={{fontSize:40,marginBottom:8}}>📭</div>
-                <div style={{fontSize:13,color:GRAY2}}>{loading?"Loading orders...":"Koi order nahi"}</div>
-              </div>
-            ):fOrders.map((o,i)=>(
-              <div key={o.id} style={{padding:"12px 16px",borderBottom:i<fOrders.length-1?"1px solid #F8F8F8":"none",
-                display:"grid",gridTemplateColumns:"1.5fr 1fr 1fr auto",gap:10,alignItems:"center"}}>
-                <div>
-                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}>
-                    <span style={{fontSize:12,fontWeight:700,color:DK}}>{o.name}</span>
-                    <span style={{fontSize:8,padding:"2px 6px",borderRadius:8,background:GRAY,color:GRAY2,fontWeight:600}}>{o.category}</span>
-                  </div>
-                  <div style={{fontSize:10,color:GRAY2}}>📱 {o.phone}</div>
-                  <div style={{fontSize:10,color:GRAY2}}>📍 {o.address?.slice(0,30)}</div>
-                  {o.note&&<div style={{fontSize:10,color:G}}>💬 {o.note}</div>}
-                </div>
-                <div>
-                  <div style={{fontSize:11,fontWeight:600,color:"#5A3D1A"}}>{o.hamper_name}</div>
-                  <div style={{fontSize:10,color:GRAY2}}>Qty: {o.quantity}</div>
-                  <div style={{fontSize:15,color:G,fontWeight:700}}>₹{o.total?.toLocaleString()}</div>
-                  <div style={{fontSize:9,color:"#CCC"}}>{new Date(o.created_at).toLocaleDateString("en-IN")}</div>
-                </div>
-                <select value={o.status} onChange={e=>updateStatus(o.id,e.target.value)}
-                  style={{padding:"5px 7px",borderRadius:7,fontSize:10,border:`1px solid ${SC[o.status]}`,
-                    color:SC[o.status],fontWeight:700,background:W,cursor:"pointer",outline:"none"}}>
-                  {Object.keys(SC).map(s=><option key={s} value={s}>{s}</option>)}
-                </select>
-                <button onClick={()=>deleteOrder(o.id)}
-                  style={{background:"#FFF5F5",border:"1px solid #FFE0E0",color:"#F44336",padding:"5px 8px",borderRadius:7,cursor:"pointer",fontSize:11,fontWeight:700}}>🗑️</button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  // HOME
-  return(
-    <div style={{fontFamily:"-apple-system,sans-serif",background:W,color:DK,overflowX:"hidden"}}>
-
-      {/* CART SIDEBAR */}
-      {showCart&&(
-        <div style={{position:"fixed",inset:0,zIndex:1000,display:"flex"}}>
-          <div onClick={()=>setShowCart(false)} style={{flex:1,background:"rgba(0,0,0,0.4)"}}/>
-          <div style={{width:380,background:W,display:"flex",flexDirection:"column",boxShadow:"-8px 0 40px rgba(0,0,0,0.15)"}}>
-            <div style={{padding:"20px 20px 14px",borderBottom:"1px solid #F0F0F0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <h3 style={{fontSize:18,fontWeight:700,color:DK}}>🛒 Cart ({cartCount})</h3>
-              <button onClick={()=>setShowCart(false)} style={{background:"none",border:"none",fontSize:20,cursor:"pointer",color:GRAY2}}>✕</button>
-            </div>
-            <div style={{flex:1,overflowY:"auto",padding:"16px 20px"}}>
-              {cart.length===0?(
-                <div style={{textAlign:"center",padding:"40px 20px",color:GRAY2}}>
-                  <div style={{fontSize:40,marginBottom:8}}>🛒</div>
-                  <div>Cart khali hai!</div>
-                </div>
-              ):cart.map(c=>(
-                <div key={c.id} style={{display:"flex",gap:12,alignItems:"center",marginBottom:16,padding:"12px",background:GRAY,borderRadius:10}}>
-                  <span style={{fontSize:28}}>{c.emoji}</span>
-                  <div style={{flex:1}}>
-                    <div style={{fontSize:13,fontWeight:700,color:DK}}>{c.name}</div>
-                    <div style={{fontSize:12,color:G,fontWeight:700}}>₹{c.price.toLocaleString()}</div>
-                  </div>
-                  <div style={{display:"flex",alignItems:"center",gap:8}}>
-                    <button onClick={()=>updateQty(c.id,c.qty-1)}
-                      style={{width:26,height:26,border:`1px solid ${G}`,background:W,color:G,fontSize:14,cursor:"pointer",borderRadius:6,fontWeight:700}}>−</button>
-                    <span style={{fontSize:13,fontWeight:700,minWidth:16,textAlign:"center"}}>{c.qty}</span>
-                    <button onClick={()=>updateQty(c.id,c.qty+1)}
-                      style={{width:26,height:26,border:"none",background:G,color:W,fontSize:14,cursor:"pointer",borderRadius:6,fontWeight:700}}>+</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {cart.length>0&&(
-              <div style={{padding:"16px 20px",borderTop:"1px solid #F0F0F0"}}>
-                <div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}>
-                  <span style={{fontSize:15,fontWeight:600}}>Total</span>
-                  <span style={{fontSize:20,fontWeight:700,color:G}}>₹{cartTotal.toLocaleString()}</span>
-                </div>
-                <div style={{marginBottom:10}}>
-                  {[["name","Name","Aapka naam"],["phone","Phone","WhatsApp number"],["addr","Address","Delivery address"]].map(([k,l,p])=>(
-                    <div key={k} style={{marginBottom:8}}>
-                      <label style={{fontSize:10,letterSpacing:1.5,textTransform:"uppercase",color:GRAY2,fontWeight:600,display:"block",marginBottom:4}}>{l} *</label>
-                      <input style={{...I,padding:"10px 12px",fontSize:13}} placeholder={p} value={form[k]}
-                        onChange={e=>setForm({...form,[k]:e.target.value})}/>
-                    </div>
-                  ))}
-                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                    <div>
-                      <label style={{fontSize:10,letterSpacing:1.5,textTransform:"uppercase",color:GRAY2,fontWeight:600,display:"block",marginBottom:4}}>City</label>
-                      <input style={{...I,padding:"10px 12px",fontSize:13}} placeholder="Mumbai" value={form.city}
-                        onChange={e=>setForm({...form,city:e.target.value})}/>
-                    </div>
-                    <div>
-                      <label style={{fontSize:10,letterSpacing:1.5,textTransform:"uppercase",color:GRAY2,fontWeight:600,display:"block",marginBottom:4}}>Note</label>
-                      <input style={{...I,padding:"10px 12px",fontSize:13}} placeholder="Special request" value={form.note}
-                        onChange={e=>setForm({...form,note:e.target.value})}/>
-                    </div>
-                  </div>
-                </div>
-                <button onClick={doRazorpay} disabled={paying}
-                  style={{width:"100%",background:paying?"#ccc":G,color:W,border:"none",
-                    padding:"14px",fontSize:13,fontWeight:700,cursor:paying?"not-allowed":"pointer",
-                    borderRadius:12,marginTop:4}}>
-                  {paying?"Processing...":"💳 Pay ₹"+cartTotal.toLocaleString()+" →"}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* NAV */}
-      <nav style={{position:"sticky",top:0,zIndex:999,background:"rgba(255,255,255,0.88)",
-        backdropFilter:"blur(20px)",borderBottom:"1px solid rgba(0,0,0,0.08)",padding:"0 5%"}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",height:50,maxWidth:1200,margin:"0 auto"}}>
-          <div style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}} onClick={()=>window.scrollTo({top:0,behavior:"smooth"})}>
-            <div style={{width:30,height:30,borderRadius:6,background:`linear-gradient(135deg,${DK},${G})`,
-              display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>🍫</div>
-            <span style={{fontSize:15,color:DK,fontWeight:700}}>Nuxchoco</span>
-          </div>
-          <div style={{display:"flex",gap:18,alignItems:"center"}}>
-            {[["categories","Categories"],["hampers","Hampers"],["contact","Contact"]].map(([id,l])=>(
-              <button key={id} onClick={()=>go(id)}
-                style={{background:"none",border:"none",color:GRAY2,fontSize:13,fontWeight:500,cursor:"pointer"}}>{l}</button>
-            ))}
-            <button onClick={()=>setShowCart(true)}
-              style={{background:GRAY,color:DK,border:"none",padding:"8px 16px",fontSize:12,fontWeight:600,cursor:"pointer",borderRadius:980,position:"relative"}}>
-              🛒 Cart {cartCount>0&&<span style={{background:G,color:W,borderRadius:"50%",fontSize:9,padding:"2px 5px",marginLeft:4}}>{cartCount}</span>}
-            </button>
-            <button onClick={()=>setShowCart(true)}
-              style={{background:G,color:W,border:"none",padding:"8px 16px",fontSize:12,fontWeight:600,cursor:"pointer",borderRadius:980}}>
-              Order Now
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      {/* HERO */}
-      <section style={{background:B.bg,minHeight:"88vh",display:"flex",alignItems:"center",
-        padding:"70px 6%",position:"relative",overflow:"hidden",transition:"background 0.8s"}}>
-        <div style={{position:"absolute",top:"20%",right:"8%",width:400,height:400,
-          background:`radial-gradient(circle,${B.ac}20 0%,transparent 70%)`,borderRadius:"50%",pointerEvents:"none"}}/>
-        <div style={{maxWidth:1100,width:"100%",margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:70,alignItems:"center"}}>
-          <div>
-            <div style={{display:"inline-block",background:`${B.ac}25`,border:`1px solid ${B.ac}40`,borderRadius:20,padding:"4px 12px",marginBottom:18}}>
-              <span style={{fontSize:10,color:B.ac,fontWeight:700,letterSpacing:1}}>{B.tag}</span>
-            </div>
-            <h1 style={{fontSize:"clamp(32px,5vw,58px)",color:"white",lineHeight:1.1,fontWeight:700,marginBottom:12,letterSpacing:-1,whiteSpace:"pre-line"}}>{B.sub}</h1>
-            <p style={{fontSize:15,color:"rgba(255,255,255,0.5)",lineHeight:1.7,marginBottom:28}}>Premium Dryfruits · Imported Chocolates · Luxury Packaging</p>
-            <div style={{display:"flex",gap:10}}>
-              <button onClick={()=>go("hampers")}
-                style={{background:G,color:W,border:"none",padding:"12px 26px",fontSize:12,fontWeight:600,cursor:"pointer",borderRadius:980}}>Shop Now →</button>
-              <button onClick={()=>go("categories")}
-                style={{background:"transparent",color:"rgba(255,255,255,0.7)",border:"1px solid rgba(255,255,255,0.4)",padding:"12px 26px",fontSize:12,fontWeight:600,cursor:"pointer",borderRadius:980}}>All Categories</button>
-            </div>
-          </div>
-          <div style={{textAlign:"center"}}>
-            <div style={{fontSize:130,lineHeight:1,filter:"drop-shadow(0 20px 40px rgba(0,0,0,0.3))"}}>{B.emoji}</div>
-            <div style={{marginTop:16,background:`${B.ac}15`,border:`1px solid ${B.ac}30`,borderRadius:12,padding:"10px 16px",display:"inline-flex",alignItems:"center",gap:8}}>
-              <div style={{width:22,height:22,borderRadius:4,background:`linear-gradient(135deg,${DK},${G})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11}}>🍫</div>
-              <span style={{fontSize:12,color:"white",fontWeight:600}}>Nuxchoco Hampers</span>
-            </div>
-          </div>
-        </div>
-        <div style={{position:"absolute",bottom:22,left:"50%",transform:"translateX(-50%)",display:"flex",gap:7}}>
-          {[0,1,2,3].map(i=>(
-            <button key={i} onClick={()=>{setBn(i);clearInterval(tr.current);}}
-              style={{width:i===bn?22:6,height:6,borderRadius:3,border:"none",background:i===bn?"white":"rgba(255,255,255,0.3)",cursor:"pointer",transition:"all .3s",padding:0}}/>
-          ))}
-        </div>
-      </section>
-
-      {/* MARQUEE */}
-      <div style={{background:G,padding:"10px 0",overflow:"hidden"}}>
-        <div style={{display:"flex",whiteSpace:"nowrap"}}>
-          {[0,1].map(k=>(
-            <div key={k} style={{display:"flex",flexShrink:0}}>
-              {["Wedding Hampers","Rakhi Special 2026","Diwali Gifts","Corporate Gifting","Pan India Delivery","Premium Dryfruits","Imported Chocolates","Custom Branding"].map((t,j)=>(
-                <span key={j} style={{fontSize:10,fontWeight:600,letterSpacing:2.5,textTransform:"uppercase",color:"white",padding:"0 26px"}}>{t} <span style={{opacity:0.4}}>◆</span></span>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* CATEGORIES */}
-      <section id="categories" style={{background:GRAY,padding:"80px 6%"}}>
-        <div style={{maxWidth:1200,margin:"0 auto"}}>
-          <div style={{textAlign:"center",marginBottom:44}}>
-            <div style={{fontSize:11,letterSpacing:3,textTransform:"uppercase",color:G,marginBottom:10,fontWeight:600}}>Shop by Category</div>
-            <h2 style={{fontSize:"clamp(22px,4vw,40px)",color:DK,fontWeight:700,letterSpacing:-1}}>Hampers for Every Occasion</h2>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-            {CATS.map(cat=>(
-              <div key={cat.id} style={{background:cat.bg,borderRadius:18,padding:"30px 26px",position:"relative",overflow:"hidden",cursor:"pointer",border:`1px solid ${cat.color}15`,transition:"transform .2s"}}
-                onClick={()=>go("hampers")}
-                onMouseEnter={e=>e.currentTarget.style.transform="scale(1.01)"}
-                onMouseLeave={e=>e.currentTarget.style.transform="none"}>
-                <div style={{position:"absolute",right:-15,top:-15,fontSize:100,opacity:0.1}}>{cat.icon}</div>
-                <div style={{fontSize:10,letterSpacing:2.5,textTransform:"uppercase",color:cat.color,fontWeight:700,marginBottom:8}}>{cat.label}</div>
-                <h3 style={{fontSize:20,color:DK,fontWeight:700,marginBottom:6,letterSpacing:-0.5}}>{cat.desc}</h3>
-                <p style={{fontSize:12,color:GRAY2,marginBottom:16}}>From ₹{Math.min(...cat.items.map(h=>h.price)).toLocaleString()} · {cat.items.length} hampers</p>
-                <span style={{fontSize:13,color:cat.color,fontWeight:600}}>Shop {cat.label} →</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* HAMPERS */}
-      <section id="hampers" style={{background:W,padding:"80px 6%"}}>
-        <div style={{maxWidth:1200,margin:"0 auto"}}>
-          <div style={{textAlign:"center",marginBottom:44}}>
-            <div style={{fontSize:11,letterSpacing:3,textTransform:"uppercase",color:G,marginBottom:10,fontWeight:600}}>Our Products</div>
-            <h2 style={{fontSize:"clamp(22px,4vw,40px)",color:DK,fontWeight:700,letterSpacing:-1}}>Every Gift, Perfectly Curated</h2>
-          </div>
-          <div style={{display:"flex",gap:8,justifyContent:"center",marginBottom:32,flexWrap:"wrap"}}>
-            {["All",...CATS.map(c=>c.label)].map(c=>(
-              <button key={c} onClick={()=>setCatF(c)}
-                style={{padding:"7px 16px",borderRadius:980,fontSize:12,fontWeight:600,cursor:"pointer",border:"none",background:catF===c?DK:GRAY,color:catF===c?W:GRAY2,transition:"all .2s"}}>{c}</button>
-            ))}
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16}}>
-            {ALL.filter(h=>catF==="All"||h.cat===catF).map(h=>(
-              <div key={h.id} style={{background:W,borderRadius:14,overflow:"hidden",border:"1px solid #F0F0F0",boxShadow:"0 2px 14px rgba(0,0,0,0.05)",transition:"transform .2s,box-shadow .2s"}}
-                onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow="0 10px 28px rgba(0,0,0,0.09)";}}
-                onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="0 2px 14px rgba(0,0,0,0.05)";}}>
-                <div style={{height:128,background:h.catBg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:50,position:"relative"}}>
-                  {h.emoji}
-                  <span style={{position:"absolute",top:8,left:10,fontSize:8,padding:"3px 7px",borderRadius:6,background:h.catColor,color:W,fontWeight:700}}>{h.cat}</span>
-                </div>
-                <div style={{padding:"14px"}}>
-                  <h3 style={{fontSize:14,color:DK,margin:"0 0 4px",fontWeight:700}}>{h.name}</h3>
-                  <p style={{fontSize:11,color:GRAY2,lineHeight:1.6,marginBottom:10}}>{h.desc}</p>
-                  <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:12}}>
-                    <span style={{fontSize:17,color:G,fontWeight:700}}>₹{h.price.toLocaleString()}</span>
-                    <span style={{fontSize:11,color:GRAY2,textDecoration:"line-through"}}>₹{h.op}</span>
-                    <span style={{fontSize:9,color:"#4CAF50",fontWeight:700,background:"#E8F5E9",padding:"2px 5px",borderRadius:5}}>{Math.round((1-h.price/h.op)*100)}% OFF</span>
-                  </div>
-                  <button onClick={()=>addToCart(h)}
-                    style={{width:"100%",background:DK,color:W,border:"none",padding:"9px",fontSize:11,fontWeight:600,cursor:"pointer",borderRadius:8}}>
-                    🛒 Add to Cart
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* STATS */}
-      <section style={{background:DK,padding:"68px 6%"}}>
-        <div style={{maxWidth:1000,margin:"0 auto",display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:1,background:"rgba(255,255,255,0.04)"}}>
-          {[["₹6.25L Cr","India Gifting 2024"],["₹14,000 Cr","Corporate Gifting"],["₹25,000 Cr","Chocolate Market"],["200M+","Rakhi Celebrators"],["90%","Gift Chocolates"]].map(([n,l],i)=>(
-            <div key={i} style={{background:DK,padding:"30px 12px",textAlign:"center"}}>
-              <div style={{fontSize:22,color:G,fontWeight:700}}>{n}</div>
-              <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",marginTop:6,lineHeight:1.5}}>{l}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CONTACT */}
-      <section id="contact" style={{background:W,padding:"80px 6%",textAlign:"center"}}>
-        <div style={{maxWidth:520,margin:"0 auto"}}>
-          <div style={{width:56,height:56,borderRadius:14,background:`linear-gradient(135deg,${DK},${G})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,margin:"0 auto 20px"}}>🍫</div>
-          <div style={{fontSize:11,letterSpacing:3,textTransform:"uppercase",color:G,marginBottom:10,fontWeight:600}}>Get in Touch</div>
-          <h2 style={{fontSize:"clamp(20px,3.5vw,36px)",color:DK,fontWeight:700,marginBottom:10,letterSpacing:-1}}>Ready to Gift Something Extraordinary?</h2>
-          <p style={{fontSize:14,color:GRAY2,lineHeight:1.7,marginBottom:30}}>Whether 1 hamper or 5,000 — we make every moment unforgettable.</p>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:28}}>
-            {[["📱","WhatsApp","Order instantly"],["📸","Instagram","@nuxchocohampers"],["📦","Corporate","Bulk 50+ orders"]].map(([ic,t,d])=>(
-              <div key={t} style={{background:GRAY,borderRadius:12,padding:"16px 10px",textAlign:"center"}}>
-                <div style={{fontSize:22,marginBottom:6}}>{ic}</div>
-                <div style={{fontSize:11,fontWeight:700,color:DK,marginBottom:2}}>{t}</div>
-                <div style={{fontSize:10,color:GRAY2}}>{d}</div>
-              </div>
-            ))}
-          </div>
-          <button onClick={()=>setShowCart(true)}
-            style={{background:G,color:W,border:"none",padding:"14px 36px",fontSize:12,fontWeight:700,cursor:"pointer",borderRadius:980}}>
-            🎁 Order Now
-          </button>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer style={{background:DK,borderTop:"1px solid rgba(255,255,255,0.05)",padding:"30px 6%"}}>
-        <div style={{maxWidth:1200,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:26,marginBottom:22}}>
-          <div>
-            <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:10}}>
-              <div style={{width:24,height:24,borderRadius:4,background:`linear-gradient(135deg,${DK},${G})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12}}>🍫</div>
-              <span style={{fontSize:13,color:W,fontWeight:700}}>Nuxchoco</span>
-            </div>
-            <p style={{fontSize:10,color:"rgba(255,255,255,0.3)",lineHeight:1.7}}>India Premium Dryfruit & Chocolate Hamper Brand</p>
-          </div>
-          {[{t:"Categories",l:["Wedding","Rakhi","Diwali","Corporate"]},
-            {t:"Company",l:["About Us","Our Story","Contact"]},
-            {t:"Support",l:["Track Order","Returns","FAQ"]}
-          ].map(col=>(
-            <div key={col.t}>
-              <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",letterSpacing:1.5,textTransform:"uppercase",marginBottom:12,fontWeight:600}}>{col.t}</div>
-              {col.l.map(l=><div key={l} style={{fontSize:11,color:"rgba(255,255,255,0.5)",marginBottom:6,cursor:"pointer"}}>{l}</div>)}
-            </div>
-          ))}
-        </div>
-        <div style={{maxWidth:1200,margin:"0 auto",paddingTop:16,borderTop:"1px solid rgba(255,255,255,0.05)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
-          <div style={{fontSize:10,color:"rgba(255,255,255,0.18)"}}>© 2026 Nuxchoco Hampers · GST Registered · Made with ❤️ in India</div>
-          <button onClick={()=>setPg("admin")} style={{background:"none",border:"none",fontSize:9,color:"rgba(255,255,255,0.15)",cursor:"pointer"}}>Admin</button>
-        </div>
-      </footer>
-    </div>
-  );
+function setState(updates) {
+  Object.assign(state, updates);
+  render();
 }
 
-ReactDOM.render(React.createElement(App), document.getElementById("root"));
+setInterval(() => setState({bannerIdx: (state.bannerIdx + 1) % 4}), 5000);
+
+async function loadOrders() {
+  setState({loading: true});
+  const {data} = await sb.from("orders").select("*").order("created_at", {ascending: false});
+  setState({orders: data || [], loading: false});
+}
+
+function cartTotal() { return state.cart.reduce((s,c) => s + c.price * c.qty, 0); }
+function cartCount() { return state.cart.reduce((s,c) => s + c.qty, 0); }
+
+function addToCart(item) {
+  const ex = state.cart.find(c => c.id === item.id);
+  const cart = ex
+    ? state.cart.map(c => c.id === item.id ? {...c, qty: c.qty + 1} : c)
+    : [...state.cart, {...item, qty: 1}];
+  setState({cart, showCart: true});
+}
+
+function updateQty(id, qty) {
+  if (qty < 1) { setState({cart: state.cart.filter(c => c.id !== id)}); return; }
+  setState({cart: state.cart.map(c => c.id === id ? {...c, qty} : c)});
+}
+
+async function doRazorpay() {
+  const f = state.form;
+  if (!f.name || !f.phone || !f.addr) { alert("Name, phone aur address zaroori hai!"); return; }
+  setState({paying: true});
+  const options = {
+    key: RZP_KEY,
+    amount: cartTotal() * 100,
+    currency: "INR",
+    name: "Nuxchoco Hampers",
+    description: "Premium Gift Hamper",
+    handler: async function(response) {
+      for (const item of state.cart) {
+        await sb.from("orders").insert({
+          name: f.name, phone: f.phone,
+          address: f.addr + (f.city ? ", " + f.city : ""),
+          city: f.city, hamper_name: item.name,
+          category: item.cat, quantity: item.qty,
+          total: item.price * item.qty,
+          status: "New", note: f.note
+        });
+      }
+      setState({cart: [], showCart: false, paying: false, page: "thankyou"});
+    },
+    prefill: {name: f.name, contact: f.phone},
+    theme: {color: "#C9933A"},
+    modal: {ondismiss: () => setState({paying: false})}
+  };
+  const rzp = new Razorpay(options);
+  rzp.open();
+}
+
+async function updateStatus(id, status) {
+  await sb.from("orders").update({status}).eq("id", id);
+  setState({orders: state.orders.map(o => o.id === id ? {...o, status} : o)});
+}
+
+async function deleteOrder(id) {
+  await sb.from("orders").delete().eq("id", id);
+  setState({orders: state.orders.filter(o => o.id !== id)});
+}
+
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({behavior: "smooth"});
+}
+
+function render() {
+  const app = document.getElementById("app");
+  const b = BANNERS[state.bannerIdx];
+
+  if (state.page === "thankyou") {
+    app.innerHTML = `
+      <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#F5F5F7;">
+        <div style="background:white;border-radius:20px;padding:50px 40px;text-align:center;max-width:420px;box-shadow:0 8px 40px rgba(0,0,0,0.08);">
+          <div style="font-size:64px;margin-bottom:16px;">🎉</div>
+          <h2 style="font-size:26px;font-weight:700;margin-bottom:10px;">Order Placed!</h2>
+          <p style="font-size:15px;color:#86868B;line-height:1.7;margin-bottom:28px;">Aapka order successfully place ho gaya! Hum jald WhatsApp karenge. 😊</p>
+          <button class="btn-gold" onclick="setState({page:'home'})">Back to Home</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  if (state.page === "admin") {
+    const fOrders = state.orderCatFilter === "All" ? state.orders : state.orders.filter(o => o.category === state.orderCatFilter);
+    const rev = state.orders.filter(o => o.status !== "Cancelled").reduce((s,o) => s + (o.total||0), 0);
+    app.innerHTML = `
+      <div class="admin-page">
+        <nav class="admin-nav">
+          <div class="admin-nav-inner">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="logo-icon">🍫</div>
+              <div><div style="font-size:13px;font-weight:700;">Nuxchoco Admin</div><div style="font-size:8px;color:#86868B;letter-spacing:1.5px;">ORDER DASHBOARD</div></div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              ${state.adminIn ? `<button class="btn-gold" style="border-radius:8px;padding:7px 14px;font-size:11px;" onclick="loadOrders()">Refresh</button>` : ""}
+              <button style="background:none;color:#86868B;border:1px solid #E0E0E0;padding:7px 14px;font-size:11px;border-radius:8px;cursor:pointer;" onclick="setState({adminIn:false,page:'home'})">Logout</button>
+            </div>
+          </div>
+        </nav>
+        ${!state.adminIn ? `
+          <div class="login-box">
+            <div class="login-card">
+              <div class="login-icon">🍫</div>
+              <div class="login-title">Admin Login</div>
+              <div class="login-sub">Nuxchoco Dashboard</div>
+              <input class="login-input" type="password" placeholder="Password..." id="passInput" style="${state.passErr ? 'border-color:#F44336;' : ''}" onkeydown="if(event.key==='Enter'){doLogin();}" value="${state.pass}"/>
+              ${state.passErr ? '<div class="error-msg">Wrong password!</div>' : ''}
+              <button class="login-btn" onclick="doLogin()">Login</button>
+              <div class="login-hint">Password: nuxchoco2026</div>
+            </div>
+          </div>` : `
+          <div class="admin-content">
+            <div class="stats-cards">
+              <div class="stat-card" style="border-left:3px solid #3B1F0A;"><div class="stat-card-icon">📦</div><div class="stat-card-value">${state.orders.length}</div><div class="stat-card-label">Total</div></div>
+              <div class="stat-card" style="border-left:3px solid #C9933A;"><div class="stat-card-icon">🆕</div><div class="stat-card-value">${state.orders.filter(o=>o.status==="New").length}</div><div class="stat-card-label">New</div></div>
+              <div class="stat-card" style="border-left:3px solid #4CAF50;"><div class="stat-card-icon">✅</div><div class="stat-card-value">${state.orders.filter(o=>o.status==="Delivered").length}</div><div class="stat-card-label">Delivered</div></div>
+              <div class="stat-card" style="border-left:3px solid #9C27B0;"><div class="stat-card-icon">💰</div><div class="stat-card-value">₹${rev.toLocaleString()}</div><div class="stat-card-label">Revenue</div></div>
+              <div class="stat-card" style="border-left:3px solid #2196F3;"><div class="stat-card-icon">⏳</div><div class="stat-card-value">${state.orders.filter(o=>["Confirmed","Packed"].includes(o.status)).length}</div><div class="stat-card-label">Pending</div></div>
+            </div>
+            <div class="filter-btns">
+              ${["All","Wedding","Rakhi","Diwali","Corporate"].map(c => `
+                <button class="filter-btn" style="background:${state.orderCatFilter===c?'#C9933A':'white'};color:${state.orderCatFilter===c?'white':'#5A3D1A'};" onclick="setState({orderCatFilter:'${c}'})">
+                  ${{"Wedding":"💒 ","Rakhi":"🧡 ","Diwali":"🪔 ","Corporate":"🏢 ","All":"📦 "}[c]}${c}
+                </button>`).join("")}
+            </div>
+            <div class="orders-table">
+              <div class="orders-header"><h3>${state.orderCatFilter==="All"?"All Orders":state.orderCatFilter+" Orders"}</h3><span style="font-size:10px;color:#86868B;">${state.loading?"Loading...":fOrders.length+" orders"}</span></div>
+              ${fOrders.length === 0 ? `<div class="empty-orders"><div style="font-size:40px;margin-bottom:8px;">📭</div><div style="font-size:13px;color:#86868B;">${state.loading?"Loading...":"Koi order nahi"}</div></div>` :
+              fOrders.map((o,i) => `
+                <div class="order-row" style="${i < fOrders.length-1 ? 'border-bottom:1px solid #F8F8F8;' : ''}">
+                  <div>
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+                      <span class="order-name">${o.name}</span>
+                      <span class="cat-tag">${o.category||""}</span>
+                    </div>
+                    <div class="order-meta">📱 ${o.phone}</div>
+                    <div class="order-meta">📍 ${(o.address||"").slice(0,30)}</div>
+                    ${o.note ? `<div style="font-size:10px;color:#C9933A;">💬 ${o.note}</div>` : ""}
+                  </div>
+                  <div>
+                    <div class="order-item">${o.hamper_name}</div>
+                    <div class="order-meta">Qty: ${o.quantity}</div>
+                    <div class="order-price">₹${(o.total||0).toLocaleString()}</div>
+                    <div style="font-size:9px;color:#CCC;">${new Date(o.created_at).toLocaleDateString("en-IN")}</div>
+                  </div>
+                  <select class="status-select" style="border-color:${STATUS_COLORS[o.status]||"#ccc"};color:${STATUS_COLORS[o.status]||"#ccc"};" onchange="updateStatus(${o.id}, this.value)">
+                    ${Object.keys(STATUS_COLORS).map(s => `<option value="${s}" ${o.status===s?"selected":""}>${s}</option>`).join("")}
+                  </select>
+                  <button class="del-btn" onclick="deleteOrder(${o.id})">🗑️</button>
+                </div>`).join("")}
+            </div>
+          </div>`}
+      </div>`;
+    return;
+  }
+
+  const cartHTML = state.showCart ? `
+    <div class="cart-overlay">
+      <div class="cart-backdrop" onclick="setState({showCart:false})"></div>
+      <div class="cart-panel">
+        <div class="cart-header">
+          <h3>🛒 Cart (${cartCount()})</h3>
+          <button class="cart-close" onclick="setState({showCart:false})">✕</button>
+        </div>
+        <div class="cart-items">
+          ${state.cart.length === 0 ? `<div class="cart-empty"><div class="icon">🛒</div><div>Cart khali hai!</div></div>` :
+          state.cart.map(c => `
+            <div class="cart-item">
+              <span class="cart-item-emoji">${c.emoji}</span>
+              <div class="cart-item-info">
+                <div class="cart-item-name">${c.name}</div>
+                <div class="cart-item-price">₹${c.price.toLocaleString()}</div>
+              </div>
+              <div class="qty-controls">
+                <button class="qty-btn qty-btn-minus" onclick="updateQty(${c.id}, ${c.qty-1})">−</button>
+                <span class="qty-num">${c.qty}</span>
+                <button class="qty-btn qty-btn-plus" onclick="updateQty(${c.id}, ${c.qty+1})">+</button>
+              </div>
+            </div>`).join("")}
+        </div>
+        ${state.cart.length > 0 ? `
+          <div class="cart-footer">
+            <div class="cart-total-row">
+              <span class="cart-total-label">Total</span>
+              <span class="cart-total-amount">₹${cartTotal().toLocaleString()}</span>
+            </div>
+            <div class="form-group"><label class="form-label">Name *</label><input class="form-input" placeholder="Aapka naam" id="f_name" value="${state.form.name}" oninput="state.form.name=this.value"/></div>
+            <div class="form-group"><label class="form-label">Phone *</label><input class="form-input" placeholder="WhatsApp number" id="f_phone" value="${state.form.phone}" oninput="state.form.phone=this.value"/></div>
+            <div class="form-group"><label class="form-label">Address *</label><input class="form-input" placeholder="Delivery address" id="f_addr" value="${state.form.addr}" oninput="state.form.addr=this.value"/></div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">City</label><input class="form-input" placeholder="Mumbai" id="f_city" value="${state.form.city}" oninput="state.form.city=this.value"/></div>
+              <div class="form-group"><label class="form-label">Note</label><input class="form-input" placeholder="Special request" id="f_note" value="${state.form.note}" oninput="state.form.note=this.value"/></div>
+            </div>
+            <button class="pay-btn" onclick="doRazorpay()" ${state.paying?"disabled":""}>
+              ${state.paying ? "Processing..." : "Pay Rs." + cartTotal().toLocaleString() + " →"}
+            </button>
+          </div>` : ""}
+      </div>
+    </div>` : "";
+
+  app.innerHTML = cartHTML + `
+    <nav>
+      <div class="nav-inner">
+        <a class="logo" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+          <div class="logo-icon">🍫</div>
+          <span class="logo-text">Nuxchoco</span>
+        </a>
+        <div class="nav-links">
+          <button class="nav-link" onclick="scrollTo('categories')">Categories</button>
+          <button class="nav-link" onclick="scrollTo('hampers')">Hampers</button>
+          <button class="nav-link" onclick="scrollTo('contact')">Contact</button>
+          <button class="btn-cart" onclick="setState({showCart:true})">🛒 Cart ${cartCount() > 0 ? `<span class="cart-badge">${cartCount()}</span>` : ""}</button>
+          <button class="btn-gold" onclick="setState({showCart:true})">Order Now</button>
+        </div>
+      </div>
+    </nav>
+
+    <section class="hero" style="background:${b.bg};">
+      <div style="position:absolute;top:20%;right:8%;width:400px;height:400px;background:radial-gradient(circle,${b.ac}20 0%,transparent 70%);border-radius:50%;pointer-events:none;"></div>
+      <div class="hero-content">
+        <div>
+          <div class="hero-tag" style="background:${b.ac}25;border:1px solid ${b.ac}40;color:${b.ac};">${b.tag}</div>
+          <h1>${b.sub}</h1>
+          <p>Premium Dryfruits · Imported Chocolates · Luxury Packaging</p>
+          <div class="hero-btns">
+            <button class="btn-gold" onclick="scrollTo('hampers')">Shop Now</button>
+            <button class="btn-outline-white" onclick="scrollTo('categories')">All Categories</button>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-emoji">${b.emoji}</div>
+          <div class="hero-badge" style="background:${b.ac}15;border:1px solid ${b.ac}30;">
+            <div class="logo-icon" style="width:22px;height:22px;font-size:11px;">🍫</div>
+            <span style="font-size:12px;color:white;font-weight:600;">Nuxchoco Hampers</span>
+          </div>
+        </div>
+      </div>
+      <div class="dots">
+        ${[0,1,2,3].map(i => `<button class="dot" style="width:${i===state.bannerIdx?22:6}px;background:${i===state.bannerIdx?'white':'rgba(255,255,255,0.3)'};" onclick="setState({bannerIdx:${i}})"></button>`).join("")}
+      </div>
+    </section>
+
+    <div class="marquee">
+      <div class="marquee-track">
+        ${["Wedding Hampers","Rakhi Special 2026","Diwali Gifts","Corporate Gifting","Pan India Delivery","Premium Dryfruits","Imported Chocolates","Custom Branding"].map(t => `<span class="marquee-item">${t} <span style="opacity:0.4;">◆</span></span>`).join("")}
+        ${["Wedding Hampers","Rakhi Special 2026","Diwali Gifts","Corporate Gifting","Pan India Delivery","Premium Dryfruits","Imported Chocolates","Custom Branding"].map(t => `<span class="marquee-item">${t} <span style="opacity:0.4;">◆</span></span>`).join("")}
+      </div>
+    </div>
+
+    <section id="categories" style="background:#F5F5F7;">
+      <div style="max-width:1200px;margin:0 auto;">
+        <div class="section-label">Shop by Category</div>
+        <div class="section-title" style="color:#100C04;">Hampers for Every Occasion</div>
+        <div class="cats-grid">
+          ${CATS.map(cat => `
+            <div class="cat-card" style="background:${cat.bg};border:1px solid ${cat.color}15;" onclick="scrollTo('hampers')">
+              <div class="cat-card-icon">${cat.icon}</div>
+              <div class="cat-label" style="color:${cat.color};">${cat.label}</div>
+              <h3>${cat.desc}</h3>
+              <p>From Rs.${Math.min(...cat.items.map(h=>h.price)).toLocaleString()} · ${cat.items.length} hampers</p>
+              <span class="cat-link" style="color:${cat.color};">Shop ${cat.label} →</span>
+            </div>`).join("")}
+        </div>
+      </div>
+    </section>
+
+    <section id="hampers" style="background:white;">
+      <div style="max-width:1200px;margin:0 auto;">
+        <div class="section-label">Our Products</div>
+        <div class="section-title" style="color:#100C04;">Every Gift, Perfectly Curated</div>
+        <div class="filter-tabs">
+          ${["All",...CATS.map(c=>c.label)].map(c => `
+            <button class="filter-tab" style="background:${state.catFilter===c?'#100C04':'#F5F5F7'};color:${state.catFilter===c?'white':'#86868B'};" onclick="setState({catFilter:'${c}'})">${c}</button>`).join("")}
+        </div>
+        <div class="products-grid">
+          ${ALL_ITEMS.filter(h => state.catFilter==="All" || h.cat===state.catFilter).map(h => `
+            <div class="product-card">
+              <div class="product-img" style="background:${h.catBg};">
+                ${h.emoji}
+                <span class="product-cat-tag" style="background:${h.catColor};">${h.cat}</span>
+              </div>
+              <div class="product-body">
+                <h3>${h.name}</h3>
+                <p>${h.desc}</p>
+                <div class="price-row">
+                  <span class="price">Rs.${h.price.toLocaleString()}</span>
+                  <span class="price-old">Rs.${h.op}</span>
+                  <span class="price-off">${Math.round((1-h.price/h.op)*100)}% OFF</span>
+                </div>
+                <button class="btn-add" onclick='addToCart(${JSON.stringify(h).replace(/'/g, "&#39;")})'>Add to Cart</button>
+              </div>
+            </div>`).join("")}
+        </div>
+      </div>
+    </section>
+
+    <div class="stats">
+      <div class="stats-grid">
+        ${[["Rs.6.25L Cr","India Gifting 2024"],["Rs.14,000 Cr","Corporate Gifting"],["Rs.25,000 Cr","Chocolate Market"],["200M+","Rakhi Celebrators"],["90%","Gift Chocolates"]].map(([n,l]) => `
+          <div class="stat-box"><div class="stat-num">${n}</div><div class="stat-lbl">${l}</div></div>`).join("")}
+      </div>
+    </div>
+
+    <section id="contact" class="contact-section">
+      <div style="max-width:520px;margin:0 auto;">
+        <div class="logo-icon" style="margin:0 auto 20px;width:56px;height:56px;font-size:28px;">🍫</div>
+        <div class="section-label" style="text-align:center;">Get in Touch</div>
+        <div class="section-title" style="text-align:center;color:#100C04;">Ready to Gift Something Extraordinary?</div>
+        <p style="text-align:center;color:#86868B;font-size:14px;line-height:1.7;margin-bottom:30px;">Whether it is 1 hamper or 5,000 — we make every moment unforgettable.</p>
+        <div class="contact-grid" style="margin-bottom:28px;">
+          <div class="contact-card"><div class="icon">📱</div><h4>WhatsApp</h4><p>Order instantly</p></div>
+          <div class="contact-card"><div class="icon">📸</div><h4>Instagram</h4><p>@nuxchocohampers</p></div>
+          <div class="contact-card"><div class="icon">📦</div><h4>Corporate</h4><p>Bulk 50+ orders</p></div>
+        </div>
+        <div style="text-align:center;">
+          <button class="btn-gold" style="font-size:14px;padding:14px 36px;" onclick="setState({showCart:true})">Order Now</button>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="footer-grid">
+        <div>
+          <div class="footer-logo">
+            <div class="logo-icon" style="width:24px;height:24px;font-size:12px;">🍫</div>
+            <span>Nuxchoco</span>
+          </div>
+          <p style="font-size:10px;color:rgba(255,255,255,0.3);line-height:1.7;">Premium Dryfruit and Chocolate Hamper Brand</p>
+        </div>
+        ${[{t:"Categories",l:["Wedding","Rakhi","Diwali","Corporate"]},{t:"Company",l:["About Us","Our Story","Contact"]},{t:"Support",l:["Track Order","Returns","FAQ"]}].map(col => `
+          <div>
+            <div class="footer-col-title">${col.t}</div>
+            ${col.l.map(l => `<span class="footer-link">${l}</span>`).join("")}
+          </div>`).join("")}
+      </div>
+      <div class="footer-bottom">
+        <span class="footer-copy">2026 Nuxchoco Hampers · GST Registered · Made with love in India</span>
+        <button class="admin-btn" onclick="setState({page:'admin'})">Admin</button>
+      </div>
+    </footer>`;
+}
+
+function doLogin() {
+  const input = document.getElementById("passInput");
+  const val = input ? input.value : state.pass;
+  if (val === "nuxchoco2026") {
+    setState({adminIn: true, passErr: false});
+    loadOrders();
+  } else {
+    setState({passErr: true});
+  }
+}
+
+render();
 </script>
 </body>
 </html>
