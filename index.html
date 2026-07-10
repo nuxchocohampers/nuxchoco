@@ -308,8 +308,8 @@ const CAT_EMOJI={
 };
 const ADMIN_FILTERS=["All",...CATS.map(c=>c.label)];
 
-let state={page:"home",bn:0,an:0,catFilter:"All",cart:[],showCart:false,orders:[],adminIn:false,pass:"",passErr:false,form:{name:"",phone:"",addr:"",city:"",note:""},paying:false,fCat:"All",loading:false,formErr:null,loggingIn:false};
-let bnTimer=setInterval(()=>setState({bn:(state.bn+1)%BANNERS.length}),5000);
+let state={page:"home",bn:0,an:0,catFilter:"All",cart:[],showCart:false,orders:[],adminIn:false,pass:"",passErr:false,form:{name:"",phone:"",addr:"",city:"",note:""},paying:false,fCat:"All",loading:false,formErr:null,loggingIn:false,login:{email:"",password:""}};
+let bnTimer=setInterval(()=>{if(state.page==="home")setState({bn:(state.bn+1)%BANNERS.length});},5000);
 const ANNOUNCE=[
   "\ud83c\udf81 Free Pan-India Delivery on orders above Rs.999 \u2014 delivered in 5-7 business days",
   "\ud83e\udde1 Rakhi Special 2026 \u2014 Book your hampers early!",
@@ -317,7 +317,7 @@ const ANNOUNCE=[
   "\ud83d\udcac Order instantly on WhatsApp: 9974039002",
   "\ud83d\udc76 Baby Shower Hampers starting at Rs.599 \u2014 delivered in 5-7 business days"
 ];
-let anTimer=setInterval(()=>setState({an:(state.an+1)%ANNOUNCE.length}),3500);
+let anTimer=setInterval(()=>{if(state.page==="home")setState({an:(state.an+1)%ANNOUNCE.length});},3500);
 const MARQ=["Baby Shower","Wedding Hampers","Rakhi Special 2026","Diwali Gifts","Corporate Gifting","Birthday Hampers","Delivery in 5-7 Business Days","Pan India Delivery","Premium Dryfruits","Ferrero Rocher"];
 
 /* ===== SHIPROCKET TRACKING =====
@@ -508,16 +508,18 @@ function trackOrder(){
 async function doLogin(){
   const em=document.getElementById("emailInput");
   const pw=document.getElementById("passInput");
-  const email=(em?em.value:"").trim();
-  const password=pw?pw.value:"";
+  const email=((em?em.value:state.login.email)||"").trim();
+  const password=(pw?pw.value:state.login.password)||"";
   if(!email||!password){setState({passErr:"Email aur password dono daaliye."});return;}
 
+  state.login.email=email;state.login.password=password;
   setState({loggingIn:true,passErr:false});
   const{error}=await sb.auth.signInWithPassword({email,password});
   if(error){
     setState({loggingIn:false,passErr:"Login fail: galat email ya password."});
     return;
   }
+  state.login={email:"",password:""}; // memory se hata do
   setState({loggingIn:false,adminIn:true,passErr:false});
   loadOrders();
 }
@@ -566,8 +568,8 @@ function render(){
         <img src="${LOGO}"/>
         <div class="login-title">Admin Login</div>
         <div class="login-sub">Nuxchoco Dashboard</div>
-        <input class="login-input" type="email" autocomplete="username" placeholder="Email" id="emailInput" style="${state.passErr?"border-color:#F44336;":""}" onkeydown="if(event.key==='Enter')doLogin();"/>
-        <input class="login-input" type="password" autocomplete="current-password" placeholder="Password" id="passInput" style="${state.passErr?"border-color:#F44336;":""}" onkeydown="if(event.key==='Enter')doLogin();"/>
+        <input class="login-input" type="email" autocomplete="username" placeholder="Email" id="emailInput" value="${state.login.email}" oninput="state.login.email=this.value" style="${state.passErr?"border-color:#F44336;":""}" onkeydown="if(event.key==='Enter')doLogin();"/>
+        <input class="login-input" type="password" autocomplete="current-password" placeholder="Password" id="passInput" value="${state.login.password}" oninput="state.login.password=this.value" style="${state.passErr?"border-color:#F44336;":""}" onkeydown="if(event.key==='Enter')doLogin();"/>
         ${state.passErr?`<div style="font-size:12px;color:#F44336;margin-bottom:8px;">${state.passErr}</div>`:""}
         <button class="login-btn" onclick="doLogin()" ${state.loggingIn?"disabled":""}>${state.loggingIn?"Logging in...":"Login to Dashboard"}</button>
       </div></div>`:`
