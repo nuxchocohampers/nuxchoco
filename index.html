@@ -85,6 +85,7 @@ section{padding:70px 5%;}
 .pdots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:3;pointer-events:none;}
 .pdots span{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.6);box-shadow:0 0 3px rgba(0,0,0,0.4);transition:width .2s,background .2s;}
 .pdots span.on{width:16px;border-radius:4px;background:#fff;}
+.oos-badge{position:absolute;top:10px;left:10px;z-index:4;background:#C0392B;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;letter-spacing:0.3px;}
 .product-body{padding:16px;}
 .product-body h3{font-size:15px;font-weight:800;margin-bottom:6px;color:#100C04;}
 .product-body p{font-size:12px;color:#86868B;line-height:1.5;margin-bottom:12px;}
@@ -339,7 +340,7 @@ const CAT_EMOJI={
 };
 const ADMIN_FILTERS=["All",...CATS.map(c=>c.label)];
 
-let state={page:"home",bn:0,an:0,catFilter:"All",cart:[],showCart:false,pview:null,orders:[],dbProducts:[],adminTab:"orders",pform:{id:null,category:"rakhi",name:"",description:"",price:"",mrp:"",images:[]},pSaving:false,pUploading:false,dbCategories:[],cform:{id:null,name:"",color:"#C9933A",image_url:""},cSaving:false,cUploading:false,adminIn:false,pass:"",passErr:false,form:{name:"",phone:"",email:"",addr:"",city:"",state:"",pincode:"",note:""},paying:false,fCat:"All",loading:false,formErr:null,loggingIn:false,login:{email:"",password:""},faqOpen:{},lastOrder:null};
+let state={page:"home",bn:0,an:0,catFilter:"All",cart:[],showCart:false,pview:null,orders:[],dbProducts:[],adminTab:"orders",pform:{id:null,category:"rakhi",name:"",description:"",price:"",mrp:"",images:[],featured:false,stock:""},pSaving:false,pUploading:false,dbCategories:[],cform:{id:null,name:"",color:"#C9933A",image_url:""},cSaving:false,cUploading:false,adminIn:false,pass:"",passErr:false,form:{name:"",phone:"",email:"",addr:"",city:"",state:"",pincode:"",note:""},paying:false,fCat:"All",loading:false,formErr:null,loggingIn:false,login:{email:"",password:""},faqOpen:{},lastOrder:null};
 /* Timers sirf tab chalein jab home page khula ho AUR cart/payment band ho.
    Warna checkout form re-render hota hai aur typing ka focus tootta hai. */
 function timersOk(){return state.page==="home"&&!state.showCart&&!state.pview&&!state.paying;}
@@ -442,7 +443,9 @@ function cartCount(){return state.cart.reduce((s,c)=>s+c.qty,0);}
 function findItem(id){return (state.dbProducts||[]).find(p=>p.id===id)||CATS.find(h=>h.id===id);}
 function addToCart(id,openCart){
   const item=findItem(id);if(!item)return;
+  if(item.stock!==undefined&&!inStock(item)){toast("Ye product abhi out of stock hai","err");return;}
   const ex=state.cart.find(c=>c.id===id);
+  if(ex&&item.stock!==undefined&&stockLeft(item)!==Infinity&&ex.qty>=stockLeft(item)){toast("Itna hi stock available hai","err");return;}
   const cart=ex?state.cart.map(c=>c.id===id?{...c,qty:c.qty+1}:c):[...state.cart,{...item,qty:1,name:item.name||item.label,desc:item.description||item.pdesc||""}];
   if(openCart){setState({cart,showCart:true,pview:null});}
   else{setState({cart});toast("Cart mein add ho gaya 🛒","success");}
@@ -564,16 +567,21 @@ async function lookupPincode(pin){
 }
 
 /* ===== PRODUCT / CATEGORY CARD HTML ===== */
+function stockLeft(p){const s=p.stock;return (s===null||s===undefined||s==="")?Infinity:Number(s);}
+function inStock(p){return stockLeft(p)>0;}
 function productCardHTML(p){
   const imgs=p.images||[];
   const slides=imgs.length?imgs.map(src=>`<img src="${src}" alt="${p.name}" loading="lazy"/>`).join(""):`<img src="${IMG.rakhi}" alt="${p.name}"/>`;
   const dots=imgs.length>1?`<div class="pdots">${imgs.map((_,i)=>`<span class="${i===0?"on":""}"></span>`).join("")}</div>`:"";
   const off=p.mrp&&p.mrp>p.price?Math.round((1-p.price/p.mrp)*100):0;
+  const oos=!inStock(p);
+  const left=stockLeft(p);
   return `
     <div class="product-card">
       <div class="product-img-wrap" onclick="openProduct('${p.id}')" style="cursor:pointer;">
         <div class="pslider">${slides}</div>
         ${dots}
+        ${oos?`<div class="oos-badge">Out of Stock</div>`:""}
       </div>
       <div class="product-body">
         <h3 onclick="openProduct('${p.id}')" style="cursor:pointer;">${p.name}</h3>
@@ -583,8 +591,10 @@ function productCardHTML(p){
           ${p.mrp&&p.mrp>p.price?`<span class="price-old">Rs.${p.mrp.toLocaleString()}</span>`:""}
           ${off?`<span class="price-off">${off}% OFF</span>`:""}
         </div>
+        ${(!oos&&left!==Infinity&&left<=5)?`<div style="font-size:11px;color:#C0392B;font-weight:600;margin-bottom:8px;">Sirf ${left} bache!</div>`:""}
+        ${oos?`<button class="btn-add" disabled style="opacity:0.5;cursor:not-allowed;">Out of Stock</button>`:`
         <button class="btn-add" onclick="event.stopPropagation();addToCart('${p.id}')">Add to Cart</button>
-        <button class="btn-buy" onclick="event.stopPropagation();buyNow('${p.id}')">Buy Now</button>
+        <button class="btn-buy" onclick="event.stopPropagation();buyNow('${p.id}')">Buy Now</button>`}
       </div>
     </div>`;
 }
@@ -612,12 +622,13 @@ function categoryCardHTML(cat){
 /* Grid items: agar category ke real products hain to wo dikhao, warna category placeholder card.
    Filter "All" pe sab; kisi category pe sirf usi ke. */
 function gridItemsHTML(){
-  let cats=allCats();
-  if(state.catFilter!=="All"){cats=cats.filter(c=>c.label===state.catFilter);}
-  return cats.map(cat=>{
-    const ps=catProducts(cat.id);
-    return ps.length?ps.map(productCardHTML).join(""):categoryCardHTML(cat);
-  }).join("");
+  let prods=(state.dbProducts||[]).filter(p=>p.active!==false);
+  if(state.catFilter!=="All"){
+    const cat=allCats().find(c=>c.label===state.catFilter);
+    prods=cat?prods.filter(p=>p.category===cat.id):[];
+  }
+  if(!prods.length)return `<div style="grid-column:1/-1;text-align:center;padding:44px 20px;color:#86868B;font-size:14px;">Is section me abhi products aa rahe hain.</div>`;
+  return prods.map(productCardHTML).join("");
 }
 function productModalHTML(){
   if(!state.pview)return "";
@@ -641,17 +652,20 @@ function productModalHTML(){
           ${off?`<span class="price-off">${off}% OFF</span>`:""}
         </div>
         <p style="font-size:13px;color:#5A5A5A;line-height:1.6;margin-bottom:20px;white-space:pre-line;">${p.description||""}</p>
+        ${inStock(p)?`
+        ${(stockLeft(p)!==Infinity&&stockLeft(p)<=5)?`<div style="font-size:12px;color:#C0392B;font-weight:600;margin-bottom:10px;">Sirf ${stockLeft(p)} bache!</div>`:""}
         <div style="display:flex;gap:10px;">
           <button class="btn-add" style="flex:1;" onclick="addToCart('${p.id}')">Add to Cart</button>
           <button class="btn-buy" style="flex:1;margin-top:0;" onclick="buyNow('${p.id}')">Buy Now</button>
-        </div>
+        </div>`:`
+        <div style="background:#FDECEA;color:#C0392B;font-weight:700;text-align:center;padding:14px;border-radius:10px;">Out of Stock</div>`}
       </div>
     </div>
   </div>`;
 }
 
 /* ===== PRODUCTS: database load + admin CRUD ===== */
-function blankPform(){return {id:null,category:"rakhi",name:"",description:"",price:"",mrp:"",images:[]};}
+function blankPform(){return {id:null,category:"rakhi",name:"",description:"",price:"",mrp:"",images:[],featured:false,stock:""};}
 
 async function loadProducts(){
   const {data,error}=await sb.from("products").select("*").order("sort",{ascending:true}).order("created_at",{ascending:false});
@@ -763,7 +777,8 @@ async function saveProduct(){
   const p=state.pform;
   if(!p.name||!p.category||!p.price){toast("Naam, category aur price zaroori hain","err");return;}
   const row={name:p.name.trim(),category:p.category,description:(p.description||"").trim(),
-    price:parseInt(p.price)||0,mrp:p.mrp?parseInt(p.mrp):null,images:p.images||[],active:true};
+    price:parseInt(p.price)||0,mrp:p.mrp?parseInt(p.mrp):null,images:p.images||[],featured:!!p.featured,
+    stock:(p.stock===""||p.stock===null||p.stock===undefined)?null:parseInt(p.stock),active:true};
   setState({pSaving:true});
   let error;
   if(p.id){({error}=await sb.from("products").update(row).eq("id",p.id));}
@@ -775,7 +790,7 @@ async function saveProduct(){
 }
 function editProduct(id){
   const p=(state.dbProducts||[]).find(x=>x.id===id);if(!p)return;
-  setState({adminTab:"products",pform:{id:p.id,category:p.category,name:p.name,description:p.description||"",price:p.price,mrp:p.mrp||"",images:(p.images||[]).slice()}});
+  setState({adminTab:"products",pform:{id:p.id,category:p.category,name:p.name,description:p.description||"",price:p.price,mrp:p.mrp||"",images:(p.images||[]).slice(),featured:!!p.featured,stock:(p.stock===null||p.stock===undefined)?"":p.stock}});
   window.scrollTo({top:0,behavior:"smooth"});
 }
 async function deleteProduct(id){
@@ -849,7 +864,7 @@ function productsPanelHTML(){
         <img src="${(p.images&&p.images[0])||LOGO}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;background:#FDF8F0;flex:none;"/>
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:700;color:#100C04;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
-          <div style="font-size:10px;color:#86868B;">${catLabel(p.category)} · Rs.${(p.price||0).toLocaleString()}${p.mrp?` · <s>Rs.${p.mrp}</s>`:""}${(p.images||[]).length?` · ${(p.images||[]).length} 📷`:""}</div>
+          <div style="font-size:10px;color:#86868B;">${catLabel(p.category)} · Rs.${(p.price||0).toLocaleString()}${p.mrp?` · <s>Rs.${p.mrp}</s>`:""}${(p.images||[]).length?` · ${(p.images||[]).length} 📷`:""} · ${(p.stock===null||p.stock===undefined)?"Stock: ∞":(p.stock>0?("Stock: "+p.stock):"<span style='color:#C0392B;font-weight:700;'>Out of stock</span>")}</div>
         </div>
         <button onclick="editProduct('${p.id}')" style="background:#F5F5F7;border:none;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px;">✏️</button>
         <button onclick="deleteProduct('${p.id}')" style="background:#FDECEA;border:none;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px;">🗑️</button>
@@ -878,6 +893,14 @@ function productsPanelHTML(){
           <input style="${inp}" type="number" inputmode="numeric" placeholder="1999" value="${f.mrp}" oninput="state.pform.mrp=this.value"/>
         </div>
       </div>
+
+      <label style="${lbl}">Stock quantity <span style="color:#86868B;font-weight:400;">(khali chhodo = unlimited; 0 = out of stock)</span></label>
+      <input style="${inp}" type="number" inputmode="numeric" placeholder="e.g. 10" value="${f.stock}" oninput="state.pform.stock=this.value"/>
+
+      <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:#5A3D1A;margin-bottom:14px;cursor:pointer;">
+        <input type="checkbox" ${f.featured?"checked":""} onchange="state.pform.featured=this.checked" style="width:16px;height:16px;cursor:pointer;"/>
+        ⭐ Best Seller (homepage ke "Our Bestsellers" me dikhega)
+      </label>
 
       <label style="${lbl}">Photos ${state.pUploading?`<span style="color:#C9933A;">(uploading...)</span>`:`<span style="color:#86868B;font-weight:400;">(pehli photo = main, slide ho jayengi)</span>`}</label>
       <div style="margin-bottom:8px;">${thumbs||`<span style="font-size:11px;color:#AAA;">Koi photo nahi</span>`}</div>
@@ -1158,7 +1181,7 @@ function render(){
   </div>`:"";
 
   const filteredCats = state.catFilter==="All" ? allCats() : allCats().filter(c=>c.label===state.catFilter);
-  const bestList = CATS.filter(c=>["rakhi","diwali","corporate","healthy"].includes(c.id));
+  const bestProducts=(state.dbProducts||[]).filter(p=>p.featured&&p.active!==false);
 
   app.innerHTML=cartHTML+productModalHTML()+`
   <div class="announce">\ud83d\udce2 ${ANNOUNCE[state.an]}</div>
@@ -1229,31 +1252,17 @@ function render(){
     </div>
   </section>
 
-  <section id="bestsellers" style="background:#FDF8F0;">
+  ${bestProducts.length?`<section id="bestsellers" style="background:#FDF8F0;">
     <div style="max-width:1200px;margin:0 auto;">
       <div class="section-header">
         <div class="section-label">Most Loved</div>
         <div class="section-title">Our Bestsellers</div>
       </div>
       <div class="products-grid">
-        ${bestList.map(cat=>`
-          <div class="product-card" onclick="addToCart('${cat.id}')">
-            <div class="product-img-wrap"><img src="${catImg(cat)}" alt="${cat.label}"/></div>
-            <div class="product-body">
-              <h3>${cat.label}</h3>
-              <p>${cat.pdesc}</p>
-              <div class="price-row">
-                <span class="price">Rs.${cat.price.toLocaleString()}</span>
-                <span class="price-old">Rs.${cat.op}</span>
-                <span class="price-off">${Math.round((1-cat.price/cat.op)*100)}% OFF</span>
-              </div>
-              <button class="btn-add" onclick="event.stopPropagation();addToCart('${cat.id}')">Add to Cart</button>
-              <button class="btn-buy" onclick="event.stopPropagation();buyNow('${cat.id}')">Buy Now</button>
-            </div>
-          </div>`).join("")}
+        ${bestProducts.map(productCardHTML).join("")}
       </div>
     </div>
-  </section>
+  </section>`:""}
 
   <div class="stats">
     <div class="section-header" style="margin-bottom:34px;">
